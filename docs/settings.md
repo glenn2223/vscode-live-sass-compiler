@@ -161,7 +161,7 @@ Process only these specified files. Useful for when you deal with only a few sas
 Create a companion map file for each of the compiled files
 
 **Type:** `boolean`  
-**Default:** `true`
+**Default:** `false`
 
 </details>
 
