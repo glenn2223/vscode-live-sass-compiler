@@ -11,6 +11,8 @@ suite("SassHelper Tests", function () {
                 style: "compressed",
             });
 
+        assert.equal(actualObj.errorString, null);
+
         assert.equal(actualObj.result?.css, expected);
     });
 
@@ -22,6 +24,8 @@ suite("SassHelper Tests", function () {
             actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
                 style: "expanded",
             });
+
+        assert.equal(actualObj.errorString, null);
 
         assert.equal(actualObj.result?.css, expected);
     });
