@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2020",
+        "lib": [
+            "es2020"
+        ],
+        "sourceMap": true,
+        "outDir": "../out",
+        "rootDir": "./",
+        "esModuleInterop": true,
+    },
+    "include": [
+        "./test/*.ts",
+        "./**/*.test.ts",
+    ],
+    "exclude": [
+        "node_modules",
+    ]
+}

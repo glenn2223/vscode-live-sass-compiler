@@ -1,6 +1,5 @@
 import autoprefixer from "autoprefixer";
 import postcss from "postcss";
-import * as vscode from "vscode";
 import { OutputWindow } from "../VsCode/OutputWindow";
 import { OutputLevel } from "../Enums/OutputLevel";
 
@@ -8,7 +7,6 @@ import { OutputLevel } from "../Enums/OutputLevel";
  * Autoprefix CSS properties
  */
 export async function autoprefix(
-    folder: vscode.WorkspaceFolder | undefined,
     css: string,
     map: string | undefined,
     savePath: string,
@@ -61,7 +59,9 @@ export async function autoprefix(
             body.push(warn.text);
 
             OutputWindow.Show(
-                warn.type === "warning" ? OutputLevel.Warning : OutputLevel.Error,
+                warn.type === "warning"
+                    ? OutputLevel.Warning
+                    : OutputLevel.Error,
                 `Autoprefix ${warn.type || "error"}`,
                 body
             );
@@ -79,7 +79,8 @@ export async function autoprefix(
 
             OutputWindow.Show(
                 OutputLevel.Trace,
-                `Restored BROWSERSLIST_DISABLE_CACHE to: ${oldBrowserlistCache ?? "UNDEFINED"
+                `Restored BROWSERSLIST_DISABLE_CACHE to: ${
+                    oldBrowserlistCache ?? "UNDEFINED"
                 }`
             );
         }
