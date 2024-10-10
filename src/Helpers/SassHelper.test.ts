@@ -11,6 +11,10 @@ suite("SassHelper Tests", function () {
                 style: "compressed",
             });
 
+        if (actualObj.errorString) {
+            console.log("Compile error:", actualObj.errorString);
+        }
+
         assert.equal(actualObj.errorString, null);
 
         assert.equal(actualObj.result?.css, expected);
@@ -24,6 +28,10 @@ suite("SassHelper Tests", function () {
             actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
                 style: "expanded",
             });
+
+        if (actualObj.errorString) {
+            console.log("Compile error:", actualObj.errorString);
+        }
 
         assert.equal(actualObj.errorString, null);
 

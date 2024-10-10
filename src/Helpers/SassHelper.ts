@@ -97,7 +97,10 @@ export class SassHelper {
             };
         } catch (err) {
             if (err instanceof Error) {
-                return { result: null, errorString: err.message };
+                return {
+                    result: null,
+                    errorString: err.name + ": " + err.message,
+                };
             }
 
             return { result: null, errorString: "Unexpected error" };
