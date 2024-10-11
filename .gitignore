@@ -8,3 +8,7 @@ Gemfile
 .vscode-test
 .vscode/*.dict
 *.vsix
+
+#Ignore test output (but not the SASS files)
+src/test/sample/*
+!src/test/sample/*.scss

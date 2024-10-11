@@ -37,15 +37,21 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
--   Switched from `sass@1.69.5` to `sass-embedded@1.79.3` - as mentioned above
+-   Switched from `sass@1.69.5` to `sass-embedded@1.79.4` - as mentioned above
 
 ### Updated
 
 -   `autoprefixer` to `10.4.20` [Changelog][cl:fd]
--   `fdir` to `6.3.0` [Changelog][cl:fd]
+-   `fdir` to `6.4.0` [Changelog][cl:fd]
 -   `picomatch` to `4.0.2` [Changelog][cl:pm]
 -   `postcss` to `8.4.47` [Changelog][cl:pc]
 -   Various dev dependency updates _(nothing user facing)_
+
+### Other
+
+-   Fixed broken tests and added added several new tests
+-   Added test badge to README
+-   Code formatting and linting
 
 ## [6.1.2] - 2023-11-22
 
@@ -843,3 +849,4 @@ All notable changes to this project will be documented in this file.
 [cl:pc]: https://github.com/postcss/postcss/blob/main/CHANGELOG.md
 [cl:pm]: https://github.com/micromatch/picomatch/blob/master/CHANGELOG.md
 [cl:sa]: https://github.com/sass/dart-sass/blob/main/CHANGELOG.md
+[cl:se]: https://github.com/sass/embedded-host-node/blob/main/CHANGELOG.md
