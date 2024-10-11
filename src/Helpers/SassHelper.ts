@@ -97,6 +97,8 @@ export class SassHelper {
             };
         } catch (err) {
             if (err instanceof Error) {
+                console.log("Error:", err.message, err);
+
                 return {
                     result: null,
                     errorString: err.name + ": " + err.message,
@@ -168,7 +170,7 @@ export class SassHelper {
         return null;
     }
 
-    private static format(
+    static format(
         span: SourceSpan | undefined | null,
         stack?: string,
         deprecated?: boolean
