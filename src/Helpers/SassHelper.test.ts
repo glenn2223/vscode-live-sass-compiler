@@ -27,7 +27,7 @@ suite("SassHelper Tests", function () {
     console.log("Current dir:", __dirname);
 
     test("Simple compressed test", async () => {
-        const input = "./src/test/sample/css/sample.css",
+        const input = "./src/test/sample/css/sample.scss",
             expected = ".Sample{color:#000}",
             actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
                 style: "compressed",
@@ -44,7 +44,7 @@ suite("SassHelper Tests", function () {
     });
 
     test("Simple expanded test", async () => {
-        const input = "./src/test/sample/css/sample.css",
+        const input = "./src/test/sample/css/sample.scss",
             expected = `.Sample {
   color: #000;
 } `,
