@@ -6,7 +6,7 @@ import { workspace } from "vscode";
 import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import { Logger, Options, SourceSpan, compileAsync } from "sass-embedded";
+import { Logger, Options, SourceSpan, compileAsync } from "sass";
 import { ISassCompileResult } from "../Interfaces/ISassCompileResult";
 
 export class SassHelper {
@@ -104,6 +104,8 @@ export class SassHelper {
                     errorString: err.name + ": " + err.message,
                 };
             }
+
+            console.log("Error: (NOT `Error`)", err);
 
             return { result: null, errorString: "Unexpected error" };
         }
