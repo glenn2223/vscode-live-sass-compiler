@@ -5,6 +5,9 @@ on:
         branches:
             - "**"
 
+    # ALLOW MANUAL RUNS
+    workflow_dispatch:
+
 jobs:
     build:
         strategy:
