@@ -28,10 +28,12 @@ jobs:
 
             - name: Test extension
               if: runner.os == 'Linux'
+              working-directory: ./out/Helpers
               run: xvfb-run -a npm test
 
             - name: Test extension
               if: runner.os != 'Linux'
+              working-directory: ./out/Helpers
               run: npm test
 
             - name: Ensure prePublish script is working
