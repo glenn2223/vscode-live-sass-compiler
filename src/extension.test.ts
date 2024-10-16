@@ -61,8 +61,11 @@ suite("Extension Tests", function () {
                 )[0]
             );
 
-        console.log((await vscode.workspace.findFiles("css/**"))[0]);
-        console.log(doc);
+        console.log(
+            "First SCSS:",
+            (await vscode.workspace.findFiles("css/**"))[0]
+        );
+        console.log("Doc:", doc);
 
         // Save the file
         if (!(await doc.document.save())) {
