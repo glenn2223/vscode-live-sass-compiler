@@ -66,6 +66,9 @@ suite("Extension Tests", function () {
             assert.ok(false, "Save failed");
         }
 
+        // Wait for 1 second to allow the file system to update
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
             (file) => file.path.toLowerCase()
