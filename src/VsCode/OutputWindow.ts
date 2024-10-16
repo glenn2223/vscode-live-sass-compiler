@@ -1,10 +1,6 @@
-import {
-    OutputChannel,
-    window
-} from "vscode";
+import { OutputChannel, window } from "vscode";
 import { SettingsHelper } from "../Helpers/SettingsHelper";
 import { OutputLevel } from "../Enums/OutputLevel";
-
 
 export class OutputWindow {
     private static _msgChannel: OutputChannel;
@@ -26,24 +22,29 @@ export class OutputWindow {
     ): void {
         const userLogLevel = SettingsHelper.getOutputLogLevel();
 
-        if (outputLevel >= userLogLevel ||
-            outputLevel === OutputLevel.Critical) {
+        if (
+            outputLevel >= userLogLevel ||
+            outputLevel === OutputLevel.Critical
+        ) {
             OutputWindow.MsgChannel.show(true);
         }
 
         if (outputLevel >= userLogLevel || outputLevel > OutputLevel.Debug) {
             if (msgHeadline) {
                 OutputWindow.MsgChannel.appendLine(msgHeadline);
+                console.log(msgHeadline);
             }
 
             if (msgBody) {
                 msgBody.forEach((msg) => {
                     OutputWindow.MsgChannel.appendLine(msg);
+                    console.log(msg);
                 });
             }
 
             if (addEndLine) {
                 OutputWindow.MsgChannel.appendLine("--------------------");
+                console.log("--------------------");
             }
         }
     }
