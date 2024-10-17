@@ -9,25 +9,30 @@ import { ErrorLogger } from "./VsCode/ErrorLogger";
 import { OutputLevel } from "./Enums/OutputLevel";
 import { SettingsHelper } from "./Helpers/SettingsHelper";
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(
+    context: vscode.ExtensionContext
+): Promise<void> {
     try {
-        OutputWindow.Show(OutputLevel.Trace, '"live-sass-compiler" is now activate');
+        OutputWindow.Show(
+            OutputLevel.Trace,
+            '"live-sass-compiler" is now activate'
+        );
 
         const appModel = new AppModel(context.workspaceState);
 
         checkNewAnnouncement(context.globalState);
 
         const disposableStartWatching = vscode.commands.registerCommand(
-            "liveSass.command.watchMySass",
-            async () => {
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    'Command called: "liveSass.command.watchMySass"'
-                );
+                "liveSass.command.watchMySass",
+                async () => {
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'Command called: "liveSass.command.watchMySass"'
+                    );
 
-                await appModel.StartWatching();
-            }
-        ),
+                    await appModel.StartWatching();
+                }
+            ),
             disposableStopWaching = vscode.commands.registerCommand(
                 "liveSass.command.donotWatchMySass",
                 () => {
@@ -113,7 +118,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.trace"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Trace);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Trace
+                    );
                 }
             ),
             disposableShowOutputOnDebug = vscode.commands.registerCommand(
@@ -124,7 +131,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.debug"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Debug);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Debug
+                    );
                 }
             ),
             disposableShowOutputOnInformation = vscode.commands.registerCommand(
@@ -135,7 +144,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.information"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Information);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Information
+                    );
                 }
             ),
             disposableShowOutputOnWarning = vscode.commands.registerCommand(
@@ -146,7 +157,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.warning"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Warning);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Warning
+                    );
                 }
             ),
             disposableShowOutputOnError = vscode.commands.registerCommand(
@@ -157,7 +170,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.error"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Error);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Error
+                    );
                 }
             ),
             disposableShowOutputOnNone = vscode.commands.registerCommand(
@@ -168,18 +183,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         'Command called: "liveSass.command.showOutputOn.none"'
                     );
 
-                    await SettingsHelper.updateOutputLogLevel(OutputLevel.Critical);
+                    await SettingsHelper.updateOutputLogLevel(
+                        OutputLevel.Critical
+                    );
                 }
             ),
-            disposableOnDidSave = vscode.workspace.onDidSaveTextDocument(async (textDocument) => {
-                if (appModel.isWatching) {
-                    OutputWindow.Show(OutputLevel.Trace, 'VS Code event: "onDidSaveTextDocument"');
-                }
+            disposableOnDidSave = vscode.workspace.onDidSaveTextDocument(
+                async (textDocument) => {
+                    console.log('VS Code event: "onDidSaveTextDocument"');
 
-                // TODO: ADD - once autoprefixer can stop caching browserslist
-                //await appModel.browserslistChecks();
-                await appModel.compileOnSave(textDocument);
-            });
+                    if (appModel.isWatching) {
+                        OutputWindow.Show(
+                            OutputLevel.Trace,
+                            'VS Code event: "onDidSaveTextDocument"'
+                        );
+                    }
+
+                    // TODO: ADD - once autoprefixer can stop caching browserslist
+                    //await appModel.browserslistChecks();
+                    await appModel.compileOnSave(textDocument);
+                }
+            );
 
         context.subscriptions.push(
             disposableStartWatching,
