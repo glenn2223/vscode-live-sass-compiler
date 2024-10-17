@@ -72,10 +72,14 @@ suite("Extension Tests", function () {
         // Ensure extension has enough time to start
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
+        console.log("SAVING FILE");
+
         // Save the file
         if (!(await doc.document.save())) {
             assert.ok(false, "Save failed");
         }
+
+        console.log("FILE SAVED");
 
         // Wait for 1 second to allow the file system to update
         await new Promise((resolve) => setTimeout(resolve, 100));
