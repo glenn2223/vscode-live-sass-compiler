@@ -78,7 +78,7 @@ suite("Extension Tests", function () {
         }
 
         // Wait for 1 second to allow the file system to update
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
