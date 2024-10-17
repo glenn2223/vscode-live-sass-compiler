@@ -67,6 +67,8 @@ suite("Extension Tests", function () {
         );
         console.log("Doc:", doc);
 
+        vscode.commands.executeCommand("liveSass.command.debugFileList");
+
         // Save the file
         if (!(await doc.document.save())) {
             assert.ok(false, "Save failed");
