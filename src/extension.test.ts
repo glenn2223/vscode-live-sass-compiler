@@ -69,6 +69,9 @@ suite("Extension Tests", function () {
 
         vscode.commands.executeCommand("liveSass.command.debugFileList");
 
+        // Ensure extension has enough time to start
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+
         // Save the file
         if (!(await doc.document.save())) {
             assert.ok(false, "Save failed");
