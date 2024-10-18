@@ -61,10 +61,17 @@ suite("Extension Tests", function () {
                 )[0]
             );
 
+        doc.edit((edit) => {
+            edit.insert(new vscode.Position(2, 1), " ");
+        });
+
         // Save the file
         if (!(await doc.document.save())) {
             assert.ok(false, "Save failed");
         }
+
+        // Wait .2 seconds to allow save success
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
@@ -72,5 +79,12 @@ suite("Extension Tests", function () {
         );
 
         assert.deepEqual(actualFiles.sort(), expectedFiles.sort());
+
+        // Revert change
+        await doc.edit((edit) =>
+            edit.replace(new vscode.Range(2, 0, 2, 2), "}")
+        );
+
+        await doc.document.save();
     });
 });

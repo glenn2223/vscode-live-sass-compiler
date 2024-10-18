@@ -5,6 +5,9 @@ on:
         branches:
             - "**"
 
+    # ALLOW MANUAL RUNS
+    workflow_dispatch:
+
 jobs:
     build:
         strategy:
@@ -33,8 +36,8 @@ jobs:
 
             - name: Ensure prePublish script is working
               if: runner.os != 'Linux'
-              run: npm run prePublish
+              run: npm run vscode:prepublish
 
             - name: Ensure prePublish script is working
               if: runner.os == 'Linux'
-              run: xvfb-run -a npm run prePublish
+              run: xvfb-run -a npm run vscode:prepublish

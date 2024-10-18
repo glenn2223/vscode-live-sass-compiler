@@ -1,6 +1,7 @@
 import * as assert from "assert";
-import { SassHelper } from "./SassHelper";
 import { Logger } from "sass-embedded";
+import path from "path";
+import { SassHelper } from "./SassHelper";
 
 const loggerProperty: Logger = {
     warn: (message, options) => {
@@ -24,10 +25,13 @@ const loggerProperty: Logger = {
 };
 
 suite("SassHelper Tests", function () {
-    console.log("Current dir:", __dirname);
+    const filePath = path.resolve(
+        __dirname,
+        "../../src/test/sample/css/sample.scss"
+    );
 
     test("Simple compressed test", async () => {
-        const input = "../../src/test/sample/css/sample.css",
+        const input = filePath,
             expected = ".Sample{color:#000}",
             actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
                 style: "compressed",
@@ -44,7 +48,7 @@ suite("SassHelper Tests", function () {
     });
 
     test("Simple expanded test", async () => {
-        const input = "../../src/test/sample/css/sample.css",
+        const input = filePath,
             expected = `.Sample {
   color: #000;
 } `,
