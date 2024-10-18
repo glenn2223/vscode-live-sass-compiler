@@ -8,8 +8,7 @@ assets/**
 dist/**
 images/Screenshot/**
 node_modules/**
-out/announcement/**
-out/test/**
+out/**
 src/**
 
 **/*.map

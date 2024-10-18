@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+    pull_request:
+        branches:
+            - "**"
+
+    # ALLOW MANUAL RUNS
+    workflow_dispatch:
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+
+            - name: Install the package dependencies
+              run: npm ci
+
+            - name: Test extension
+              if: runner.os == 'Linux'
+              run: xvfb-run -a npm test
+
+            - name: Test extension
+              if: runner.os != 'Linux'
+              run: npm test
+
+            - name: Ensure prePublish script is working
+              if: runner.os != 'Linux'
+              run: npm run vscode:prepublish
+
+            - name: Ensure prePublish script is working
+              if: runner.os == 'Linux'
+              run: xvfb-run -a npm run vscode:prepublish
