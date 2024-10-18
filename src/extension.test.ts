@@ -98,5 +98,14 @@ suite("Extension Tests", function () {
         );
 
         assert.deepEqual(actualFiles.sort(), expectedFiles.sort());
+
+        // Revert change
+        await doc.edit((edit) =>
+            edit.replace(new vscode.Range(2, 0, 2, 2), "}")
+        );
+
+        await doc.document.save();
+
+        console.log("Wrapped up");
     });
 });
