@@ -51,7 +51,7 @@ suite("SassHelper Tests", function () {
         const input = filePath,
             expected = `.Sample {
   color: #000;
-} `,
+}`,
             actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
                 style: "expanded",
                 logger: loggerProperty,
