@@ -190,8 +190,6 @@ export async function activate(
             ),
             disposableOnDidSave = vscode.workspace.onDidSaveTextDocument(
                 async (textDocument) => {
-                    console.log('VS Code event: "onDidSaveTextDocument"');
-
                     if (appModel.isWatching) {
                         OutputWindow.Show(
                             OutputLevel.Trace,

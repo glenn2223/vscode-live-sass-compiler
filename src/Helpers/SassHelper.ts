@@ -105,8 +105,6 @@ export class SassHelper {
                 };
             }
 
-            console.log("Error: (NOT `Error`)", err);
-
             return { result: null, errorString: "Unexpected error" };
         }
     }

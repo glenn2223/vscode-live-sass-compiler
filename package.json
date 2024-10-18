@@ -317,7 +317,6 @@
         "fdir": "^6.4.0",
         "picomatch": "^4.0.2",
         "postcss": "^8.4.47",
-        "sass": "^1.79.5",
         "sass-embedded": "^1.79.4"
     },
     "devDependencies": {

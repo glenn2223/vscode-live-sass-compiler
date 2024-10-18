@@ -70,7 +70,7 @@ suite("Extension Tests", function () {
             assert.ok(false, "Save failed");
         }
 
-        // Wait for 1 second to allow the file system to update
+        // Wait .2 seconds to allow save success
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Get the folders files

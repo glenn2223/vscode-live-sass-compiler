@@ -32,19 +32,16 @@ export class OutputWindow {
         if (outputLevel >= userLogLevel || outputLevel > OutputLevel.Debug) {
             if (msgHeadline) {
                 OutputWindow.MsgChannel.appendLine(msgHeadline);
-                console.log(msgHeadline);
             }
 
             if (msgBody) {
                 msgBody.forEach((msg) => {
                     OutputWindow.MsgChannel.appendLine(msg);
-                    console.log(msg);
                 });
             }
 
             if (addEndLine) {
                 OutputWindow.MsgChannel.appendLine("--------------------");
-                console.log("--------------------");
             }
         }
     }
