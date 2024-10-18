@@ -1,6 +1,5 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "liveSassCompile.settings.watchOnLaunch": true,
-    "liveSassCompile.settings.compileOnWatch": false,
-    "liveSassCompile.settings.showOutputWindowOn": "Trace"
+    "liveSassCompile.settings.compileOnWatch": false
 }

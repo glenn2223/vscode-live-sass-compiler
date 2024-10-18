@@ -61,36 +61,17 @@ suite("Extension Tests", function () {
                 )[0]
             );
 
-        console.log(
-            "First SCSS:",
-            (await vscode.workspace.findFiles("css/**"))[0]
-        );
-        console.log("Doc:", doc);
-
-        vscode.commands.executeCommand("liveSass.command.debugFileList");
-
-        // Ensure extension has enough time to start
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        console.log("EDITING FILE");
-
         doc.edit((edit) => {
             edit.insert(new vscode.Position(2, 1), " ");
         });
-
-        console.log("isDirty:", doc.document.isDirty);
-
-        console.log("SAVING FILE");
 
         // Save the file
         if (!(await doc.document.save())) {
             assert.ok(false, "Save failed");
         }
 
-        console.log("FILE SAVED");
-
         // Wait for 1 second to allow the file system to update
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
