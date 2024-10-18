@@ -12,7 +12,7 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/lib/**/*"
+                "${workspaceRoot}/**/*.{t,j}s"
             ],
             "preLaunchTask": "npm: vscode:prepublish"
         },
