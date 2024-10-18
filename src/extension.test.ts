@@ -72,6 +72,14 @@ suite("Extension Tests", function () {
         // Ensure extension has enough time to start
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
+        console.log("EDITING FILE");
+
+        doc.edit((edit) => {
+            edit.insert(new vscode.Position(2, 1), " ");
+        });
+
+        console.log("isDirty:", doc.document.isDirty);
+
         console.log("SAVING FILE");
 
         // Save the file
