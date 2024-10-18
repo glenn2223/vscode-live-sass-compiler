@@ -12,9 +12,9 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/out/src/**/*.js"
+                "${workspaceRoot}/lib/**/*"
             ],
-            "preLaunchTask": "pack"
+            "preLaunchTask": "npm: vscode:prepublish"
         },
         {
             "name": "Launch Tests",
@@ -23,14 +23,14 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceRoot}",
-                "--extensionTestsPath=${workspaceRoot}/out/test/index",
-                "./assets/"
+                "--extensionTestsPath=${workspaceRoot}/out/test",
+                "${workspaceRoot}/src/test/sample"
             ],
             "sourceMaps": true,
+            "preLaunchTask": "npm: pretest",
             "outFiles": [
-                "${workspaceRoot}/out/test/**/*.js"
+                "${workspaceRoot}/**/*.{t,j}s"
             ],
-            "preLaunchTask": "npm: pretest"
         }
     ]
 }

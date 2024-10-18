@@ -4,6 +4,9 @@ import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import json from "@rollup/plugin-json";
 import commonjs from "@rollup/plugin-commonjs";
+import { argv } from "process";
+
+const isTest = argv.includes("--testing");
 
 export default {
     input: "src/extension.ts",
@@ -12,21 +15,23 @@ export default {
         {
             file: "out/extension.js",
             format: "cjs",
-            sourcemap: false,
+            sourcemap: isTest,
             compact: true,
-            plugins: [{
-                name: "navigtorFix",
-                renderChunk(code) {
-                    return {
-                        code: `var navigator=null!==navigator&&void 0!==navigator?navigator:navigator={userAgent:null};${code}`,
-                        map: null,
-                    };
+            plugins: [
+                {
+                    name: "navigtorFix",
+                    renderChunk(code) {
+                        return {
+                            code: `var navigator=null!==navigator&&void 0!==navigator?navigator:navigator={userAgent:null};${code}`,
+                            map: null,
+                        };
+                    },
                 },
-            }],
+            ],
         },
     ],
     plugins: [
-        typescript({ sourceMap: false }),
+        typescript({ sourceMap: isTest, tsconfig: "src/tsconfig.rollup.json" }),
         json(),
         terser({ format: { comments: false } }),
         commonjs({

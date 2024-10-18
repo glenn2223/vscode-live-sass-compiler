@@ -10,46 +10,6 @@ import { Logger, Options, SourceSpan, compileAsync } from "sass-embedded";
 import { ISassCompileResult } from "../Interfaces/ISassCompileResult";
 
 export class SassHelper {
-    private static parsePath<T>(importUrl: string, cb: (newPath: string) => T): T | null {
-        if (workspace.workspaceFolders) {
-            const normalisedUrl = importUrl.replace(/\\/g, "/"),
-                urlParts = normalisedUrl
-                    .substring(1)
-                    .split("/")
-                    .filter((x) => x.length > 0);
-
-            if (normalisedUrl.startsWith("~") && normalisedUrl.indexOf("/") > -1) {
-                for (let i = 0; i < workspace.workspaceFolders.length; i++) {
-                    const workingPath = [workspace.workspaceFolders[i].uri.fsPath, "node_modules"]
-                        .concat(...urlParts.slice(0, -1))
-                        .join("/");
-
-                    if (existsSync(workingPath)) {
-                        return cb(workingPath + path.sep + urlParts.slice(-1).join(path.sep));
-                    }
-                }
-            } else if (normalisedUrl.startsWith("/")) {
-                for (let i = 0; i < workspace.workspaceFolders.length; i++) {
-                    const folder = workspace.workspaceFolders[i],
-                        rootIsWorkspace = SettingsHelper.getConfigSettings<boolean>(
-                            "rootIsWorkspace",
-                            folder
-                        );
-
-                    if (rootIsWorkspace) {
-                        const filePath = [folder.uri.fsPath, normalisedUrl.substring(1)].join("/");
-
-                        if (existsSync(filePath.substring(0, filePath.lastIndexOf("/")))) {
-                            return cb(filePath);
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
     private static readonly loggerProperty: Logger = {
         warn: (
             message: string,
@@ -62,7 +22,13 @@ export class SassHelper {
             OutputWindow.Show(
                 OutputLevel.Warning,
                 "Warning:",
-                [message].concat(this.format(options.span, options.stack, options.deprecation))
+                [message].concat(
+                    this.format(
+                        options.span,
+                        options.stack,
+                        options.deprecation
+                    )
+                )
             );
         },
         debug: (message: string, options: { span?: SourceSpan }) => {
@@ -85,7 +51,10 @@ export class SassHelper {
             importers: [
                 {
                     findFileUrl: (importUrl) =>
-                        SassHelper.parsePath(importUrl, (newPath) => pathToFileURL(newPath)),
+                        // @ts-ignore: 2322
+                        SassHelper.parsePath(importUrl, (newPath) =>
+                            pathToFileURL(newPath)
+                        ),
                 },
             ],
             logger: SassHelper.loggerProperty,
@@ -111,31 +80,97 @@ export class SassHelper {
             const { css, sourceMap } = await compileAsync(SassPath, options);
 
             if (sourceMap) {
-                sourceMap.sources = sourceMap.sources.map(
-                    (sourcePath) =>
-                        path.relative(path.join(targetCssUri, "../"), fileURLToPath(sourcePath))
+                sourceMap.sources = sourceMap.sources.map((sourcePath) =>
+                    path.relative(
+                        path.join(targetCssUri, "../"),
+                        fileURLToPath(sourcePath)
+                    )
                 );
             }
 
             return {
                 result: {
                     css: css,
-                    map: sourceMap
-                        ? JSON.stringify(sourceMap)
-                        : undefined,
+                    map: sourceMap ? JSON.stringify(sourceMap) : undefined,
                 },
                 errorString: null,
             };
         } catch (err) {
             if (err instanceof Error) {
-                return { result: null, errorString: err.message };
+                console.log("Error:", err.message, err);
+
+                return {
+                    result: null,
+                    errorString: err.name + ": " + err.message,
+                };
             }
 
             return { result: null, errorString: "Unexpected error" };
         }
     }
 
-    private static format(
+    private static parsePath<T>(
+        importUrl: string,
+        cb: (newPath: string) => T
+    ): T | null {
+        if (workspace.workspaceFolders) {
+            const normalisedUrl = importUrl.replace(/\\/g, "/"),
+                urlParts = normalisedUrl
+                    .substring(1)
+                    .split("/")
+                    .filter((x) => x.length > 0);
+
+            if (
+                normalisedUrl.startsWith("~") &&
+                normalisedUrl.indexOf("/") > -1
+            ) {
+                for (let i = 0; i < workspace.workspaceFolders.length; i++) {
+                    const workingPath = [
+                        workspace.workspaceFolders[i].uri.fsPath,
+                        "node_modules",
+                    ]
+                        .concat(...urlParts.slice(0, -1))
+                        .join("/");
+
+                    if (existsSync(workingPath)) {
+                        return cb(
+                            workingPath +
+                                path.sep +
+                                urlParts.slice(-1).join(path.sep)
+                        );
+                    }
+                }
+            } else if (normalisedUrl.startsWith("/")) {
+                for (let i = 0; i < workspace.workspaceFolders.length; i++) {
+                    const folder = workspace.workspaceFolders[i],
+                        rootIsWorkspace =
+                            SettingsHelper.getConfigSettings<boolean>(
+                                "rootIsWorkspace",
+                                folder
+                            );
+
+                    if (rootIsWorkspace) {
+                        const filePath = [
+                            folder.uri.fsPath,
+                            normalisedUrl.substring(1),
+                        ].join("/");
+
+                        if (
+                            existsSync(
+                                filePath.substring(0, filePath.lastIndexOf("/"))
+                            )
+                        ) {
+                            return cb(filePath);
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    static format(
         span: SourceSpan | undefined | null,
         stack?: string,
         deprecated?: boolean
@@ -147,14 +182,18 @@ export class SassHelper {
                 stringArray.push(stack);
             }
         } else {
-            stringArray.push(this.charOfLength(span.start.line.toString().length, "╷"));
+            stringArray.push(
+                this.charOfLength(span.start.line.toString().length, "╷")
+            );
 
             let lineNumber = span.start.line;
 
             do {
                 stringArray.push(
-                    `${lineNumber} |${span.context?.split("\n")[lineNumber - span.start.line] ??
-                    span.text.split("\n")[lineNumber - span.start.line]
+                    `${lineNumber} |${
+                        span.context?.split("\n")[
+                            lineNumber - span.start.line
+                        ] ?? span.text.split("\n")[lineNumber - span.start.line]
                     }`
                 );
 
@@ -162,25 +201,40 @@ export class SassHelper {
             } while (lineNumber < span.end.line);
 
             stringArray.push(
-                this.charOfLength(span.start.line.toString().length, this.addUnderLine(span))
+                this.charOfLength(
+                    span.start.line.toString().length,
+                    this.addUnderLine(span)
+                )
             );
 
-            stringArray.push(this.charOfLength(span.start.line.toString().length, "╵"));
+            stringArray.push(
+                this.charOfLength(span.start.line.toString().length, "╵")
+            );
 
             if (span.url) {
                 // possibly include `,${span.end.line}:${span.end.column}`, if VS Code ever supports it
-                stringArray.push(`${span.url.toString()}:${span.start.line}:${span.start.column}`);
+                stringArray.push(
+                    `${span.url.toString()}:${span.start.line}:${
+                        span.start.column
+                    }`
+                );
             }
         }
 
         if (deprecated === true) {
-            stringArray.push("THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0");
+            stringArray.push(
+                "THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0"
+            );
         }
 
         return stringArray;
     }
 
-    private static charOfLength(charCount: number, suffix?: string, char = " "): string {
+    private static charOfLength(
+        charCount: number,
+        suffix?: string,
+        char = " "
+    ): string {
         if (charCount < 0) {
             return suffix ?? "";
         }
@@ -202,7 +256,11 @@ export class SassHelper {
         } else {
             outString +=
                 this.charOfLength(span.start.column - 2, "^") +
-                this.charOfLength(span.end.column - span.start.column - 1, "^", ".");
+                this.charOfLength(
+                    span.end.column - span.start.column - 1,
+                    "^",
+                    "."
+                );
         }
 
         return outString;

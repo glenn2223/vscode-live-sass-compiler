@@ -2,6 +2,7 @@
     "compilerOptions": {
         "module": "ESNext",
         "target": "es6",
+        "outDir": "../out",
         "lib": [
             "es6",
             "es5"
@@ -9,15 +10,13 @@
         "sourceMap": true,
         "esModuleInterop": true,
         "strict": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "rootDir": "./",
     },
     "include": [
-        "./*.ts"
+        "./extension.ts"
     ],
     "exclude": [
         "node_modules",
-        "lib",
-        "_site",
-        "./src/**/*"
     ]
 }
