@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
     -   `liveSassCompile.settings.formats[].indentWidth`  
         _Note: these 3 would've been dropped for SASS 2.0 anyway_
     -   `liveSassCompile.settings.useNewCompiler`
+-   Requires VS Code v1.95 or later
 
 ### Changed
 
