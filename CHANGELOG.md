@@ -38,14 +38,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
--   Switched from `sass@1.69.5` to `sass-embedded@1.79.4` - as mentioned above
+-   Switched from `sass@1.69.5` to `sass-embedded@1.87.0` - as mentioned above
 
 ### Updated
 
--   `autoprefixer` to `10.4.20` [Changelog][cl:fd]
--   `fdir` to `6.4.0` [Changelog][cl:fd]
+-   `autoprefixer` to `10.4.21` [Changelog][cl:fd]
+-   `fdir` to `6.4.4` [Changelog][cl:fd]
 -   `picomatch` to `4.0.2` [Changelog][cl:pm]
--   `postcss` to `8.4.47` [Changelog][cl:pc]
+-   `postcss` to `8.5.3` [Changelog][cl:pc]
 -   Various dev dependency updates _(nothing user facing)_
 
 ### Other
