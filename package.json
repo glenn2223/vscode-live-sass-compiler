@@ -8,6 +8,7 @@
         "name": "Glenn Marks",
         "url": "https://github.com/glenn2223/"
     },
+    "funding": "https://github.com/glenn2223/vscode-live-sass-compiler?sponsor",
     "engines": {
         "vscode": "^1.74.0"
     },
