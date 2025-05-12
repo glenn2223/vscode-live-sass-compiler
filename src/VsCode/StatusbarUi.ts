@@ -23,9 +23,13 @@ export class StatusBarUi {
             "Initializing... switching state in 1 second"
         );
 
-        setTimeout(function () {
-            watchOnLaunch ? StatusBarUi.watching() : StatusBarUi.notWatching();
-        }, 1000);
+        setTimeout(
+            () =>
+                watchOnLaunch
+                    ? StatusBarUi.watching()
+                    : StatusBarUi.notWatching(),
+            1000
+        );
     }
 
     static watching(): void {
