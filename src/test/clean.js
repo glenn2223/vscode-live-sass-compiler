@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 var fs = require("fs");
 
 function deleteFolderRecursive(path) {
@@ -7,7 +7,6 @@ function deleteFolderRecursive(path) {
     }
 
     if (fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         fs.readdirSync(path).forEach(function (file, _index) {
             var curPath = path + "/" + file;
 
