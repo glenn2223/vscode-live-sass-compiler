@@ -12,7 +12,7 @@ async function main() {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
-            version: "1.74.0",
+            version: "1.95.0",
             launchArgs: [testWorkspace],
         });
     } catch (err) {
