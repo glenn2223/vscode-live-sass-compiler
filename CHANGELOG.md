@@ -51,7 +51,8 @@ All notable changes to this project will be documented in this file.
 ### Other
 
 -   Fixed broken tests and added added several new tests
--   Added test badge to README
+-   Added test badge to README & changed badge formats
+-   Added funding link to README & `package.json`
 -   Code formatting and linting
 
 ## [6.1.2] - 2023-11-22
