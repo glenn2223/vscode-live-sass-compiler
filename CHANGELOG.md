@@ -34,7 +34,14 @@ All notable changes to this project will be documented in this file.
     -   `liveSassCompile.settings.formats[].indentWidth`  
         _Note: these 3 would've been dropped for SASS 2.0 anyway_
     -   `liveSassCompile.settings.useNewCompiler`
+-   Those who historically used `useNewCompiler` will find that source contents are no longer included inline by default.  
+    To restore the old behavior, set `generateMapIncludeSources` to `true`.
 -   Requires VS Code v1.95 or later
+
+### Added
+
+-   New `formats[].generateMapIncludeSources` setting allows you to decide on map output on a format basis. By default, they aren't included  
+    The `liveSassCompile.settings.generateMapIncludeSources` is applied if the formats setting is `null` (its default).
 
 ### Changed
 

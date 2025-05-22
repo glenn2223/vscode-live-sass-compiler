@@ -167,6 +167,14 @@
                                     "null"
                                 ],
                                 "default": null
+                            },
+                            "generateMapIncludeSources": {
+                                "description": "Include sourcesContent in the generated source map for this particular output. Note: `null` uses the top level setting (of the same name)",
+                                "type": [
+                                    "boolean",
+                                    "null"
+                                ],
+                                "default": null
                             }
                         },
                         "additionalProperties": false,
@@ -225,6 +233,14 @@
                     ],
                     "default": true,
                     "description": "Set to `false` if you don't want a `.map` file for each compiled CSS.\nDefault is `true`",
+                    "scope": "resource"
+                },
+                "liveSassCompile.settings.generateMapIncludeSources": {
+                    "type": [
+                        "boolean"
+                    ],
+                    "default": false,
+                    "description": "Include sourcesContent in the generated source map for each compiled CSS.\nDefault is false.",
                     "scope": "resource"
                 },
                 "liveSassCompile.settings.autoprefix": {
