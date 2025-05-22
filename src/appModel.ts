@@ -410,7 +410,18 @@ export class AppModel {
             return false;
         }
 
-        const options = SassHelper.toSassOptions(format);
+        // Resolve generateMapIncludeSources: per-format overrides global
+        const generateMapIncludeSources =
+            format.generateMapIncludeSources ??
+            SettingsHelper.getConfigSettings<boolean>(
+                "generateMapIncludeSources",
+                folder
+            );
+
+        const options = SassHelper.toSassOptions(
+            format,
+            generateMapIncludeSources
+        );
 
         const generateMap =
                 format.generateMap ??

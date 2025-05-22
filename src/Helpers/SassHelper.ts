@@ -45,7 +45,10 @@ export class SassHelper {
      * @param format - The format object containing the desired options.
      * @returns The Sass options object.
      */
-    static toSassOptions(format: IFormat): Options<"async"> {
+    static toSassOptions(
+        format: IFormat,
+        sourceMapIncludeSources: boolean = false
+    ): Options<"async"> {
         return {
             style: format.format,
             importers: [
@@ -59,7 +62,7 @@ export class SassHelper {
             ],
             logger: SassHelper.loggerProperty,
             sourceMap: true,
-            sourceMapIncludeSources: true,
+            sourceMapIncludeSources: sourceMapIncludeSources,
         };
     }
 
