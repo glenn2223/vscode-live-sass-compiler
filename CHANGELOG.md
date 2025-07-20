@@ -23,6 +23,18 @@ Types of changes
 
 All notable changes to this project will be documented in this file.
 
+## [6.1.3] - 2025-07-20
+
+<small>[Compare to previous release][comp:6.1.3]</small>
+
+### Updated
+
+-   `sass` to `1.89.2` [Changelog][cl:sa]
+-   `fdir` to `6.4.6` [Changelog][cl:fd]
+-   `postcss` to `8.5.6` [Changelog][cl:pc]
+-   `autoprefixer` to `10.4.21` [Changelog][cl:ap]
+-   Various dev dependency updates _(nothing user facing)_
+
 ## [6.1.2] - 2023-11-22
 
 <small>[Compare to previous release][comp:6.1.2]</small>
@@ -770,6 +782,8 @@ All notable changes to this project will be documented in this file.
 | 0.0.2   | 11.07.17   | Small description updated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | 0.0.1   | 11.07.17   | Initial Preview Release with following key features. <br> – Live SASS & SCSS Compile. <br> – Customizable file location of exported CSS. <br> – Customizable exported CSS Style (`expanded`, `compact`, `compressed`, `nested`.)<br> – Quick Status bar control.<br> – Live Reload to browser (`Live Server` extension dependency).                                                                                                                                                                                                                                                                                                                                                                          |
 
+[6.1.3]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.3
+[comp:6.1.3]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v6.1.2...v6.1.3
 [6.1.2]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.2
 [comp:6.1.2]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.1
