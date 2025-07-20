@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 -   Switched from `sass@1.69.5` to `sass-embedded@1.87.0` - as mentioned above
--   Start-up optimisation for when `compileOnLaunch` is `true`, in larger projects
+-   Start-up optimisation for when `compileOnWatch` is `true`, in larger projects
 
 ### Updated
 
