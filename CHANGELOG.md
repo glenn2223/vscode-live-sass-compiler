@@ -23,7 +23,7 @@ Types of changes
 
 All notable changes to this project will be documented in this file.
 
-## [6.1.3] - 2025-07-20
+## [6.1.3] - 2025-07-21
 
 <small>[Compare to previous release][comp:6.1.3]</small>
 
