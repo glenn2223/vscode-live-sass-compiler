@@ -48,7 +48,7 @@ export class AppModel {
             this.isWatching = !this.isWatching;
 
             if (compileOnWatch) {
-                await this.compileAllFiles();
+                void this.compileAllFiles();
 
                 return;
             }
