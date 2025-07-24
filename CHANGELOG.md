@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
         _Note: these 3 would've been dropped for SASS 2.0 anyway_
     -   `liveSassCompile.settings.useNewCompiler`
 -   Those who historically used `useNewCompiler` will find that source contents are no longer included inline by default.  
-    To restore the old behavior, set `generateMapIncludeSources` to `true`.
+    To restore the old behaviour, set `generateMapIncludeSources` to `true`.
 -   Requires VS Code v1.95 or later
 
 ### Added
@@ -46,13 +46,11 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 -   Switched from `sass@1.89.2` to `sass-embedded@1.89.2` - as mentioned above
+-   Start-up optimisation for when compiling is done upon launch (in larger projects)
 
 ### Updated
 
--   `autoprefixer` to `10.4.21` [Changelog][cl:fd]
--   `fdir` to `6.4.6` [Changelog][cl:fd]
 -   `picomatch` to `4.0.3` [Changelog][cl:pm]
--   `postcss` to `8.5.6` [Changelog][cl:pc]
 -   Various dev dependency updates _(nothing user facing)_
 
 ### Other
