@@ -24,10 +24,10 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: 16.x
 
@@ -66,10 +66,16 @@ jobs:
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
-            - name: Upload asset
+            - name: Upload VSIX to release
+              uses: softprops/action-gh-release@v2
+              if: github.ref_type == 'tag'
+              with:
+                  files: |
+                      **/*.vsix
+
+            - name: Upload artifact for temporary reference
+              if: github.ref_type == 'tag'
               uses: actions/upload-artifact@v3.1.2
               with:
                   path: |
                       **/*.vsix
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
