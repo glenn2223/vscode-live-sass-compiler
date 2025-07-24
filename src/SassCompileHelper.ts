@@ -6,9 +6,19 @@ import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import * as compiler from "../node_modules/sass/sass.node";
+import type {
+    CompileResult,
+    LegacyException,
+    LegacyFileOptions,
+    Options,
+    SourceSpan,
+} from "sass";
 
 export class SassHelper {
-    private static parsePath<T>(importUrl: string, cb: (newPath: string) => T): T | null {
+    private static parsePath<T>(
+        importUrl: string,
+        cb: (newPath: string) => T
+    ): T | null {
         if (workspace.workspaceFolders) {
             const normalisedUrl = importUrl.replace(/\\/g, "/"),
                 urlParts = normalisedUrl
@@ -16,14 +26,24 @@ export class SassHelper {
                     .split("/")
                     .filter((x) => x.length > 0);
 
-            if (normalisedUrl.startsWith("~") && normalisedUrl.indexOf("/") > -1) {
+            if (
+                normalisedUrl.startsWith("~") &&
+                normalisedUrl.indexOf("/") > -1
+            ) {
                 for (let i = 0; i < workspace.workspaceFolders.length; i++) {
-                    const workingPath = [workspace.workspaceFolders[i].uri.fsPath, "node_modules"]
+                    const workingPath = [
+                        workspace.workspaceFolders[i].uri.fsPath,
+                        "node_modules",
+                    ]
                         .concat(...urlParts.slice(0, -1))
                         .join("/");
 
                     if (existsSync(workingPath)) {
-                        return cb(workingPath + path.sep + urlParts.slice(-1).join(path.sep));
+                        return cb(
+                            workingPath +
+                                path.sep +
+                                urlParts.slice(-1).join(path.sep)
+                        );
                     }
                 }
             } else if (normalisedUrl.startsWith("/")) {
@@ -35,9 +55,16 @@ export class SassHelper {
                         );
 
                     if (rootIsWorkspace) {
-                        const filePath = [folder.uri.fsPath, normalisedUrl.substring(1)].join("/");
+                        const filePath = [
+                            folder.uri.fsPath,
+                            normalisedUrl.substring(1),
+                        ].join("/");
 
-                        if (existsSync(filePath.substring(0, filePath.lastIndexOf("/")))) {
+                        if (
+                            existsSync(
+                                filePath.substring(0, filePath.lastIndexOf("/"))
+                            )
+                        ) {
                             return cb(filePath);
                         }
                     }
@@ -53,17 +80,23 @@ export class SassHelper {
             message: string,
             options: {
                 deprecation: boolean;
-                span?: compiler.SourceSpan;
+                span?: SourceSpan;
                 stack?: string;
             }
         ) => {
             OutputWindow.Show(
                 OutputLevel.Warning,
                 "Warning:",
-                [message].concat(this.format(options.span, options.stack, options.deprecation))
+                [message].concat(
+                    this.format(
+                        options.span,
+                        options.stack,
+                        options.deprecation
+                    )
+                )
             );
         },
-        debug: (message: string, options: { span?: compiler.SourceSpan }) => {
+        debug: (message: string, options: { span?: SourceSpan }) => {
             OutputWindow.Show(
                 OutputLevel.Debug,
                 "Debug info:",
@@ -75,18 +108,20 @@ export class SassHelper {
     static toSassOptions<T extends boolean>(
         format: IFormat,
         useNew: T
-    ): T extends true ? compiler.LegacyFileOptions<"sync"> : compiler.Options<"sync">;
+    ): T extends true ? LegacyFileOptions<"sync"> : Options<"sync">;
     static toSassOptions(
         format: IFormat,
         useNew: boolean
-    ): compiler.LegacyFileOptions<"sync"> | compiler.Options<"sync"> {
+    ): LegacyFileOptions<"sync"> | Options<"sync"> {
         if (useNew) {
-            const options: compiler.Options<"sync"> = {
+            const options: Options<"sync"> = {
                 style: format.format,
                 importers: [
                     {
                         findFileUrl: (importUrl) =>
-                            SassHelper.parsePath(importUrl, (newPath) => pathToFileURL(newPath)),
+                            SassHelper.parsePath(importUrl, (newPath) =>
+                                pathToFileURL(newPath)
+                            ),
                     },
                 ],
                 logger: SassHelper.loggerProperty,
@@ -95,37 +130,38 @@ export class SassHelper {
             };
 
             return options;
-        } else {
-            const legacyOptions: compiler.LegacyFileOptions<"sync"> = {
-                file: "",
-                outputStyle: format.format,
-                omitSourceMapUrl: true,
-                linefeed: format.linefeed,
-                indentType: format.indentType,
-                indentWidth: format.indentWidth,
-                importer: (importUrl) =>
-                    SassHelper.parsePath(importUrl, (newPath) => {
-                        return { file: newPath };
-                    }),
-                logger: SassHelper.loggerProperty,
-            };
-
-            return legacyOptions;
         }
+
+        const legacyOptions: LegacyFileOptions<"sync"> = {
+            file: "",
+            outputStyle: format.format,
+            omitSourceMapUrl: true,
+            linefeed: format.linefeed,
+            indentType: format.indentType,
+            indentWidth: format.indentWidth,
+            importer: (importUrl) =>
+                SassHelper.parsePath(importUrl, (newPath) => {
+                    return { file: newPath };
+                }),
+            logger: SassHelper.loggerProperty,
+            silenceDeprecations: ["legacy-js-api"],
+        };
+
+        return legacyOptions;
     }
 
     static compileOne(
         SassPath: string,
         targetCssUri: string,
         mapFileUri: string,
-        options: compiler.LegacyFileOptions<"sync"> | compiler.Options<"sync">
+        options: LegacyFileOptions<"sync"> | Options<"sync">
     ): {
         result: { css: string; map?: string } | null;
         errorString: string | null;
     } {
         try {
             if ("file" in options) {
-                const data: compiler.LegacyFileOptions<"sync"> = { file: "" };
+                const data: LegacyFileOptions<"sync"> = { file: "" };
 
                 Object.assign(data, options);
 
@@ -145,13 +181,19 @@ export class SassHelper {
                 };
             }
 
-            const compileResult = compiler.compile(SassPath, options);
+            const compileResult = compiler.compile(
+                SassPath,
+                options
+            ) as CompileResult;
 
             if (compileResult.sourceMap) {
-                compileResult.sourceMap.sources = compileResult.sourceMap.sources.map(
-                    (sourcePath) =>
-                        path.relative(path.join(targetCssUri, "../"), fileURLToPath(sourcePath))
-                );
+                compileResult.sourceMap.sources =
+                    compileResult.sourceMap.sources.map((sourcePath) =>
+                        path.relative(
+                            path.join(targetCssUri, "../"),
+                            fileURLToPath(sourcePath)
+                        )
+                    );
             }
 
             return {
@@ -174,12 +216,14 @@ export class SassHelper {
         }
     }
 
-    private static instanceOfSassExcpetion(object: unknown): object is compiler.LegacyException {
-        return "formatted" in (object as compiler.LegacyException);
+    private static instanceOfSassExcpetion(
+        object: unknown
+    ): object is LegacyException {
+        return "formatted" in (object as LegacyException);
     }
 
     private static format(
-        span: compiler.SourceSpan | undefined | null,
+        span: SourceSpan | undefined | null,
         stack?: string,
         deprecated?: boolean
     ): string[] {
@@ -190,15 +234,18 @@ export class SassHelper {
                 stringArray.push(stack);
             }
         } else {
-            stringArray.push(this.charOfLength(span.start.line.toString().length, "╷"));
+            stringArray.push(
+                this.charOfLength(span.start.line.toString().length, "╷")
+            );
 
             let lineNumber = span.start.line;
 
             do {
                 stringArray.push(
                     `${lineNumber} |${
-                        span.context?.split("\n")[lineNumber - span.start.line] ??
-                        span.text.split("\n")[lineNumber - span.start.line]
+                        span.context?.split("\n")[
+                            lineNumber - span.start.line
+                        ] ?? span.text.split("\n")[lineNumber - span.start.line]
                     }`
                 );
 
@@ -206,25 +253,40 @@ export class SassHelper {
             } while (lineNumber < span.end.line);
 
             stringArray.push(
-                this.charOfLength(span.start.line.toString().length, this.addUnderLine(span))
+                this.charOfLength(
+                    span.start.line.toString().length,
+                    this.addUnderLine(span)
+                )
             );
 
-            stringArray.push(this.charOfLength(span.start.line.toString().length, "╵"));
+            stringArray.push(
+                this.charOfLength(span.start.line.toString().length, "╵")
+            );
 
             if (span.url) {
                 // possibly include `,${span.end.line}:${span.end.column}`, if VS Code ever supports it
-                stringArray.push(`${span.url.toString()}:${span.start.line}:${span.start.column}`);
+                stringArray.push(
+                    `${span.url.toString()}:${span.start.line}:${
+                        span.start.column
+                    }`
+                );
             }
         }
 
         if (deprecated === true) {
-            stringArray.push("THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0");
+            stringArray.push(
+                "THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0"
+            );
         }
 
         return stringArray;
     }
 
-    private static charOfLength(charCount: number, suffix?: string, char = " "): string {
+    private static charOfLength(
+        charCount: number,
+        suffix?: string,
+        char = " "
+    ): string {
         if (charCount < 0) {
             return suffix ?? "";
         }
@@ -246,7 +308,11 @@ export class SassHelper {
         } else {
             outString +=
                 this.charOfLength(span.start.column - 2, "^") +
-                this.charOfLength(span.end.column - span.start.column - 1, "^", ".");
+                this.charOfLength(
+                    span.end.column - span.start.column - 1,
+                    "^",
+                    "."
+                );
         }
 
         return outString;
