@@ -11,7 +11,7 @@
 _**Like it?** [Leave a review](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass#review-details) (please)  
 &emsp;&emsp;Or, [Support the extension](https://github.com/glenn2223/vscode-live-sass-compiler?sponsor) 💰  
 **Something wrong?** [Report an issue](https://github.com/glenn2223/vscode-live-sass-compiler/issues/new)  
-**New hear?** Watch the [YouTube quick guide](https://youtu.be/9J__JAgQbS0)_
+**New here?** Watch the [YouTube quick guide](https://youtu.be/9J__JAgQbS0)_
 
 A VSCode Extension that help you to compile/transpile your SASS/SCSS files to CSS at real-time.
 
