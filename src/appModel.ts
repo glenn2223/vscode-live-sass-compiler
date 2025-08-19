@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { FileHelper, IFileResolver } from "./Helpers/FileHelper";
 import { SettingsHelper } from "./Helpers/SettingsHelper";
 import { IFormat } from "./Interfaces/IFormat";
-import { fdir } from "fdir";
+
 import { SassHelper } from "./Helpers/SassHelper";
 import { StatusBarUi } from "./VsCode/StatusbarUi";
 import { OutputLevel } from "./Enums/OutputLevel";
@@ -22,6 +22,7 @@ import { autoprefix } from "./Helpers/Autoprefix";
 export class AppModel {
     isWatching: boolean;
     private _logger: ErrorLogger;
+    private _fileWatchers: vscode.FileSystemWatcher[] = [];
 
     constructor(workplaceState: vscode.Memento) {
         OutputWindow.Show(OutputLevel.Trace, "Constructing app model");
@@ -46,6 +47,9 @@ export class AppModel {
 
         if (!this.isWatching) {
             this.isWatching = !this.isWatching;
+            
+            // Set up file watchers
+            this.setupFileWatchers();
 
             if (compileOnWatch) {
                 void this.compileAllFiles();
@@ -60,6 +64,9 @@ export class AppModel {
     StopWatching(): void {
         if (this.isWatching) {
             this.isWatching = !this.isWatching;
+            
+            // Clean up file watchers
+            this.disposeFileWatchers();
         }
 
         this.revertUIToWatchingStatusNow();
@@ -911,82 +918,61 @@ export class AppModel {
                 false
             );
 
-            const searchLogs: Map<string, string[]> = new Map<
-                    string,
-                    string[]
-                >(),
-                isMatch = picomatch(fileList, {
-                    ignore: excludeItems,
-                    dot: true,
-                    nocase: true,
-                }),
-                searchFileCount = (
-                    await new fdir({
-                        includeBasePath: true,
-                        onlyCounts: true,
-                        resolvePaths: true,
-                        suppressErrors: true,
-                    })
-                        .filter(
-                            (filePath) =>
-                                filePath.toLowerCase().endsWith(".scss") ||
-                                filePath.toLowerCase().endsWith(".sass")
-                        )
-                        .filter((filePath) => {
-                            const result = isMatch(
-                                path.relative(basePath, filePath)
-                            );
+            // Use VS Code's findFiles to check if the specific file exists and matches patterns
+            let searchFileCount = 0;
+            try {
+                const includePattern = new vscode.RelativePattern(
+                    basePath,
+                    fileList.join(",")
+                );
 
-                            searchLogs.set(`Path: ${filePath}`, [
-                                `  isMatch: ${result}`,
-                                `   - Base path: ${basePath}`,
-                                `   - Rela path: ${path.relative(
-                                    basePath,
-                                    filePath
-                                )}`,
-                            ]);
+                const excludePattern = excludeItems.length > 0 
+                    ? `{${excludeItems.join(",")}}`
+                    : null;
 
-                            return result;
-                        })
-                        .filter((filePath) => {
-                            const result =
-                                path
-                                    .toNamespacedPath(filePath)
-                                    .localeCompare(
-                                        path.toNamespacedPath(sassPath),
-                                        undefined,
-                                        {
-                                            sensitivity: "accent",
-                                        }
-                                    ) === 0;
+                const foundFiles = await vscode.workspace.findFiles(
+                    includePattern,
+                    excludePattern ? new vscode.RelativePattern(basePath, excludePattern) : null
+                );
 
-                            searchLogs
-                                .get(`Path: ${filePath}`)
-                                ?.push(
-                                    `  compare: ${result}`,
-                                    `   - Orig file path: ${filePath}`,
-                                    `   - Orig sass path: ${sassPath}`
-                                );
+                // Check if the specific file we're looking for is in the found files
+                searchFileCount = foundFiles.filter(file => {
+                    const result = path.toNamespacedPath(file.fsPath).localeCompare(
+                        path.toNamespacedPath(sassPath),
+                        undefined,
+                        {
+                            sensitivity: "accent",
+                        }
+                    ) === 0;
 
-                            return result;
-                        })
-                        .onlyCounts()
-                        .crawl(basePath)
-                        .withPromise()
-                ).files;
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        `File comparison: ${file.fsPath}`,
+                        [
+                            `  matches target: ${result}`,
+                            `   - Found file path: ${file.fsPath}`,
+                            `   - Target sass path: ${sassPath}`
+                        ],
+                        false
+                    );
 
-            OutputWindow.Show(
-                OutputLevel.Trace,
-                "Search results",
-                undefined,
-                false
-            );
+                    return result;
+                }).length;
 
-            searchLogs.forEach((logs, key) => {
-                OutputWindow.Show(OutputLevel.Trace, key, logs, false);
-            });
-
-            OutputWindow.Show(OutputLevel.Trace, null);
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "Search results - checking if file is excluded",
+                    [`Found ${searchFileCount} matching files`],
+                    false
+                );
+            } catch (error) {
+                OutputWindow.Show(
+                    OutputLevel.Warning,
+                    "Error checking file exclusion",
+                    [`File: ${sassPath}`, `Error: ${error}`]
+                );
+                return false; // Assume not excluded if we can't check
+            }
 
             // If doesn't include true then it's not been found
             if (searchFileCount > 0) {
@@ -1156,33 +1142,32 @@ export class AppModel {
                                 );
                             }
 
-                            const isMatch = picomatch(
-                                queryPattern || ["**/*.s[ac]ss"],
-                                {
-                                    ignore: excludedItems,
-                                    dot: true,
-                                    nocase: true,
-                                }
-                            );
+                            try {
+                                // Create include and exclude patterns for VS Code's findFiles
+                                const includePattern = new vscode.RelativePattern(
+                                    basePath,
+                                    (queryPattern || ["**/*.s[ac]ss"]).join(",")
+                                );
 
-                            return new fdir({
-                                includeBasePath: true,
-                                resolvePaths: true,
-                                suppressErrors: true,
-                            })
-                                .filter(
-                                    (filePath) =>
-                                        filePath
-                                            .toLowerCase()
-                                            .endsWith(".scss") ||
-                                        filePath.toLowerCase().endsWith(".sass")
-                                )
-                                .filter((filePath) =>
-                                    isMatch(path.relative(basePath, filePath))
-                                )
-                                .withBasePath()
-                                .crawl(basePath)
-                                .withPromise();
+                                // VS Code's findFiles API with exclude patterns
+                                const excludePattern = excludedItems.length > 0 
+                                    ? `{${excludedItems.join(",")}}`
+                                    : null;
+
+                                const foundFiles = await vscode.workspace.findFiles(
+                                    includePattern,
+                                    excludePattern ? new vscode.RelativePattern(basePath, excludePattern) : null
+                                );
+
+                                return foundFiles.map(file => file.fsPath);
+                            } catch (error) {
+                                OutputWindow.Show(
+                                    OutputLevel.Warning,
+                                    "Error finding SASS files in workspace folder",
+                                    [`Folder: ${folder.name}`, `Error: ${error}`]
+                                );
+                                return [];
+                            }
                         }
                     )
                 )
@@ -1481,8 +1466,102 @@ export class AppModel {
         return workspaceFolder;
     }
 
+    private setupFileWatchers(): void {
+        OutputWindow.Show(OutputLevel.Trace, "Setting up file watchers");
+
+        // Clean up any existing watchers first
+        this.disposeFileWatchers();
+
+        if (vscode.workspace.workspaceFolders) {
+            for (const folder of vscode.workspace.workspaceFolders) {
+                // Create a watcher for SASS/SCSS files in this workspace folder
+                const pattern = new vscode.RelativePattern(folder, "**/*.{sass,scss}");
+                const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+
+                // Handle file changes
+                watcher.onDidChange(async (uri) => {
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'File system watcher: "onDidChange"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    await this.handleFileChange(uri);
+                });
+
+                // Handle file creation
+                watcher.onDidCreate(async (uri) => {
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'File system watcher: "onDidCreate"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    await this.handleFileChange(uri);
+                });
+
+                // Handle file deletion (might trigger recompilation of remaining files)
+                watcher.onDidDelete(async (uri) => {
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'File system watcher: "onDidDelete"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    // For deleted files, we might need to recompile all files
+                    // in case it was a partial file that other files depended on
+                    if (this.isWatching) {
+                        await this.GenerateAllCssAndMap();
+                    }
+                });
+
+                this._fileWatchers.push(watcher);
+            }
+        }
+
+        OutputWindow.Show(
+            OutputLevel.Trace,
+            `Set up ${this._fileWatchers.length} file watchers`
+        );
+    }
+
+    private disposeFileWatchers(): void {
+        OutputWindow.Show(
+            OutputLevel.Trace,
+            `Disposing ${this._fileWatchers.length} file watchers`
+        );
+
+        for (const watcher of this._fileWatchers) {
+            watcher.dispose();
+        }
+        this._fileWatchers = [];
+    }
+
+    private async handleFileChange(uri: vscode.Uri): Promise<void> {
+        if (!this.isWatching) {
+            return;
+        }
+
+        try {
+            // Create a mock TextDocument-like object to maintain compatibility
+            // with existing compileOnSave logic
+            const mockDocument = {
+                fileName: uri.fsPath,
+                uri: uri
+            } as vscode.TextDocument;
+
+            await this.compileOnSave(mockDocument);
+        } catch (err) {
+            OutputWindow.Show(
+                OutputLevel.Error,
+                "Error handling file change",
+                [`File: ${uri.fsPath}`, `Error: ${err}`]
+            );
+        }
+    }
+
     dispose(): void {
         OutputWindow.Show(OutputLevel.Trace, "Disposing app model");
+
+        // Dispose file watchers first
+        this.disposeFileWatchers();
 
         StatusBarUi.dispose();
         OutputWindow.dispose();
