@@ -819,6 +819,7 @@ export class AppModel {
                     else if (pattern.includes("*")) {
                         // Convert glob pattern to regex for basic matching
                         const regexPattern = pattern
+                            .replace(/\\/g, "\\\\") // Escape literal backslashes
                             .replace(/\*\*/g, ".*")
                             .replace(/\*/g, "[^/]*")
                             .replace(/\[ac\]/g, "(a|c)")
