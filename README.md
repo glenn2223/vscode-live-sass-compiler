@@ -1,15 +1,21 @@
 # Live Sass Compiler
 
-[![Icon for GitHub actions workflow status](https://img.shields.io/github/actions/workflow/status/glenn2223/vscode-live-sass-compiler/test.yml?style=for-the-badge&label=Test)](https://github.com/glenn2223/vscode-live-sass-compiler/actions/workflows/test.yml)
-[![VSCode Marketplace Badge](https://img.shields.io/vscode-marketplace/v/glenn2223.live-sass.svg?label=VSCode%20Marketplace&style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass)
-[![Total Install](https://img.shields.io/vscode-marketplace/d/glenn2223.live-sass.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass)
-[![Average Rating Badge](https://img.shields.io/vscode-marketplace/r/glenn2223.live-sass.svg?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://github.com/glenn2223/vscode-live-sass-compiler/)
+[![VSCode Marketplace Badge](https://img.shields.io/vscode-marketplace/v/glenn2223.live-sass.svg?label=VSCode%20Marketplace&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass) [![Total Install](https://img.shields.io/vscode-marketplace/d/glenn2223.live-sass.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass) [![Average Rating Badge](https://img.shields.io/vscode-marketplace/r/glenn2223.live-sass.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/glenn2223/vscode-live-sass-compiler/)
+
+If you like what we do, then a sponsorship, or one time donation would mean the world!
+
+[![Support us on ko-fi](https://img.shields.io/badge/support_me-ko--fi-yellow.svg?style=flat-square&logo=kofi)](https://ko-fi.com/N4N01TXZCB?utm_source=GitHub&utm_medium=Repo%20Shield)
+[![Buy me a coffee](https://img.shields.io/badge/buy_me-a_coffee-yellow.svg?style=flat-square&logo=buy-me-a-coffee)](https://buymeacoffee.com/topmarksdevelopment?utm_source=GitHub&utm_medium=Repo%20Shield)
+[![PayPal donate button](https://img.shields.io/badge/support_me-paypal-yellow.svg?style=flat-square&logo=paypal)](https://www.paypal.com/donate?hosted_button_id=5UFB62RB4AWNL&utm_source=GitHub&utm_medium=Repo%20Shield)
+[![Sponsor through GitHub](https://img.shields.io/badge/sponsor_me-github-yellow.svg?style=flat-square&logo=github)](https://github.com/sponsors/TopMarksDevelopment?utm_source=GitHub&utm_medium=Repo%20Shield)
+
+Why not join the discord community for devs everywhere: [![Discord](https://img.shields.io/badge/Discord-Top_Marks_Community-yellow?logo=discord&style=flat-small)](https://discord.com/invite/dPG4utpAV6?utm_source=GitHub%20Shield&utm_medium=Connect)
+
+---
 
 [<img align="right" style="width:50%" src="./images/thumbnail-quick-guide.png" title="Watch the YouTube video">](https://youtu.be/9J__JAgQbS0)
 
 _**Like it?** [Leave a review](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass#review-details) (please)  
-&emsp;&emsp;Or, [Support the extension](https://github.com/glenn2223/vscode-live-sass-compiler?sponsor) 💰  
 **Something wrong?** [Report an issue](https://github.com/glenn2223/vscode-live-sass-compiler/issues/new)  
 **New here?** Watch the [YouTube quick guide](https://youtu.be/9J__JAgQbS0)_
 
@@ -17,23 +23,23 @@ A VSCode Extension that help you to compile/transpile your SASS/SCSS files to CS
 
 ### Project links
 
--   [Installation](#installation)
--   [Settings & Commands Docs](./docs/settings.md)
--   [FAQs](./docs/faqs.md)
--   [Changelog](CHANGELOG.md)
--   [License (MIT)](LICENSE)
--   [Open Source Commitment](#our-open-source-commitment)
+- [Installation](#installation)
+- [Settings & Commands Docs](./docs/settings.md)
+- [FAQs](./docs/faqs.md)
+- [Changelog](CHANGELOG.md)
+- [License (MIT)](LICENSE)
+- [Open Source Commitment](#our-open-source-commitment)
 
 ## Features
 
--   Live SASS & SCSS compile.
--   Customizable file location of exported CSS.
--   Customizable exported CSS style (`expanded`, `compressed`).
--   Customizable extension name (`.css` or `.min.css`).
--   Quick status bar control.
--   Exclude specific folders by settings.
--   Autoprefix support (See [settings section](./docs/settings.md#livesasscompilesettingsautoprefix))
--   Reference a node module with a leading tilde e.g `~/nodePackage/theSass.scss`
+- Live SASS & SCSS compile.
+- Customizable file location of exported CSS.
+- Customizable exported CSS style (`expanded`, `compressed`).
+- Customizable extension name (`.css` or `.min.css`).
+- Quick status bar control.
+- Exclude specific folders by settings.
+- Autoprefix support (See [settings section](./docs/settings.md#livesasscompilesettingsautoprefix))
+- Reference a node module with a leading tilde e.g `~/nodePackage/theSass.scss`
 
 ## Usage/Shortcuts
 
@@ -41,7 +47,7 @@ A VSCode Extension that help you to compile/transpile your SASS/SCSS files to CS
    ![Status bar control](./images/Screenshot/statusbar.jpg)
 
 2. Press `F1` or `ctrl+shift+P` and enter `Live Sass: Watch Sass` to start watching and `Live Sass: Stop Watching Sass` to stop watching.
-3. Press `F1` or `ctrl+shift+P` and enter `Live Sass: Compile Sass - Without Watch Mode ` to compile one time compile the current file.
+3. Press `F1` or `ctrl+shift+P` and enter `Live Sass: Compile Sass - Without Watch Mode` to compile one time compile the current file.
 
 ### Under the hood details
 
@@ -59,23 +65,23 @@ Any monthly donations that we get - specifically referencing this project - will
 
 **Who should donate to this project?**
 
--   Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them.
--   Those with a little extra money that they wouldn't mind using to support the open source community
+- Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them.
+- Those with a little extra money that they wouldn't mind using to support the open source community
 
 **Who do you share with?**
 
--   [`fdir`](https://github.com/thecodrr/fdir)
--   [`picomatch`](https://github.com/micromatch/picomatch)
+- [`fdir`](https://github.com/thecodrr/fdir)
+- [`picomatch`](https://github.com/micromatch/picomatch)
 
 **How much do you share?** (% are rounded to nearest £)
 
--   Donations < £20/m => £0
--   Donations > £20/m
-    -   `fdir` => 10%
-    -   `picomatch` => 10%
--   Donations > £100/m
-    -   `fdir` => 25%
-    -   `picomatch` => 25%
+- Donations < £50/m => £0
+- Donations > £50/m
+    - `fdir` => 10%
+    - `picomatch` => 10%
+- Donations > £100/m
+    - `fdir` => 5%
+    - `picomatch` => 5%
 
 **_We hope that the project(s) we're supporting also have their own open source commitment, supporting the projects that make their solution work._**
 
