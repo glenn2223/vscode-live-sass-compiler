@@ -35,6 +35,10 @@ All notable changes to this project will be documented in this file.
 - `autoprefixer` to `10.4.24` [Changelog][cl:ap]
 - Various dev dependency updates _(nothing user facing)_
 
+### Changes
+
+- `publish.yml` now uses node version `20.x`, preventing publish errors
+
 ## [6.1.4] - 2025-07-24
 
 <small>[Compare to previous release][comp:6.1.4]</small>
