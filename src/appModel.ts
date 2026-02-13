@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { FileHelper, IFileResolver } from "./Helpers/FileHelper";
 import { SettingsHelper } from "./Helpers/SettingsHelper";
 import { IFormat } from "./Interfaces/IFormat";
-import { fdir } from "fdir";
+
 import { SassHelper } from "./Helpers/SassHelper";
 import { StatusBarUi } from "./VsCode/StatusbarUi";
 import { OutputLevel } from "./Enums/OutputLevel";
@@ -16,12 +16,12 @@ import { ErrorLogger } from "./VsCode/ErrorLogger";
 
 import BrowserslistError from "browserslist/error";
 import fs from "fs";
-import picomatch from "picomatch";
 import { autoprefix } from "./Helpers/Autoprefix";
 
 export class AppModel {
     isWatching: boolean;
     private _logger: ErrorLogger;
+    private _fileWatchers: vscode.FileSystemWatcher[] = [];
 
     constructor(workplaceState: vscode.Memento) {
         OutputWindow.Show(OutputLevel.Trace, "Constructing app model");
@@ -46,6 +46,9 @@ export class AppModel {
 
         if (!this.isWatching) {
             this.isWatching = !this.isWatching;
+            
+            // Set up file watchers
+            this.setupFileWatchers();
 
             if (compileOnWatch) {
                 void this.compileAllFiles();
@@ -60,6 +63,9 @@ export class AppModel {
     StopWatching(): void {
         if (this.isWatching) {
             this.isWatching = !this.isWatching;
+            
+            // Clean up file watchers
+            this.disposeFileWatchers();
         }
 
         this.revertUIToWatchingStatusNow();
@@ -782,29 +788,52 @@ export class AppModel {
 
                 return SassConfirmationType.SassFile;
             } else {
-                const basePath = workspaceFolder.uri.fsPath;
-
-                const isPartial = picomatch(
-                    AppModel.stripAnyLeadingSlashes(
-                        SettingsHelper.getConfigSettings<string[]>(
-                            "partialsList",
-                            workspaceFolder
-                        )
-                    ),
-                    {
-                        ignore: AppModel.stripAnyLeadingSlashes(
-                            SettingsHelper.getConfigSettings<string[]>(
-                                "excludeList",
-                                workspaceFolder
-                            )
-                        ),
-                        dot: true,
-                        nocase: true,
-                    }
+                // Use VS Code's pattern matching instead of picomatch
+                const partialPatterns = SettingsHelper.getConfigSettings<string[]>(
+                    "partialsList",
+                    workspaceFolder
                 );
 
-                if (isPartial(path.relative(basePath, pathUrl))) {
-                    return SassConfirmationType.PartialFile;
+                if (!partialPatterns || partialPatterns.length === 0) {
+                    // Fallback to default pattern if no patterns configured
+                    if (filename.startsWith("_")) {
+                        return SassConfirmationType.PartialFile;
+                    }
+                    return SassConfirmationType.SassFile;
+                }
+
+                // Check against partial patterns using VS Code's glob matching
+                const relativePartialPatterns = AppModel.stripAnyLeadingSlashes(partialPatterns);
+                const basePath = workspaceFolder.uri.fsPath;
+                const relativePath = path.relative(basePath, pathUrl);
+
+                // Simple pattern matching for common cases
+                for (const pattern of relativePartialPatterns) {
+                    // Handle the most common pattern: **/_*.s[ac]ss
+                    if (pattern === "**/_*.s[ac]ss" || pattern === "**/_*.scss" || pattern === "**/_*.sass") {
+                        if (filename.startsWith("_")) {
+                            return SassConfirmationType.PartialFile;
+                        }
+                    }
+                    // Handle direct pattern matches
+                    else if (pattern.includes("*")) {
+                        // Convert glob pattern to regex for basic matching
+                        const regexPattern = pattern
+                            .replace(/\\/g, "\\\\") // Escape literal backslashes
+                            .replace(/\*\*/g, ".*")
+                            .replace(/\*/g, "[^/]*")
+                            .replace(/\[ac\]/g, "(a|c)")
+                            .replace(/\./g, "\\.");
+                        
+                        const regex = new RegExp(`^${regexPattern}$`, "i");
+                        if (regex.test(relativePath.replace(/\\/g, "/"))) {
+                            return SassConfirmationType.PartialFile;
+                        }
+                    }
+                    // Handle exact pattern matches
+                    else if (relativePath.replace(/\\/g, "/") === pattern.replace(/\\/g, "/")) {
+                        return SassConfirmationType.PartialFile;
+                    }
                 }
 
                 return SassConfirmationType.SassFile;
@@ -911,82 +940,61 @@ export class AppModel {
                 false
             );
 
-            const searchLogs: Map<string, string[]> = new Map<
-                    string,
-                    string[]
-                >(),
-                isMatch = picomatch(fileList, {
-                    ignore: excludeItems,
-                    dot: true,
-                    nocase: true,
-                }),
-                searchFileCount = (
-                    await new fdir({
-                        includeBasePath: true,
-                        onlyCounts: true,
-                        resolvePaths: true,
-                        suppressErrors: true,
-                    })
-                        .filter(
-                            (filePath) =>
-                                filePath.toLowerCase().endsWith(".scss") ||
-                                filePath.toLowerCase().endsWith(".sass")
-                        )
-                        .filter((filePath) => {
-                            const result = isMatch(
-                                path.relative(basePath, filePath)
-                            );
+            // Use VS Code's findFiles to check if the specific file exists and matches patterns
+            let searchFileCount = 0;
+            try {
+                const includePattern = new vscode.RelativePattern(
+                    basePath,
+                    fileList.join(",")
+                );
 
-                            searchLogs.set(`Path: ${filePath}`, [
-                                `  isMatch: ${result}`,
-                                `   - Base path: ${basePath}`,
-                                `   - Rela path: ${path.relative(
-                                    basePath,
-                                    filePath
-                                )}`,
-                            ]);
+                const excludePattern = excludeItems.length > 0 
+                    ? `{${excludeItems.join(",")}}`
+                    : null;
 
-                            return result;
-                        })
-                        .filter((filePath) => {
-                            const result =
-                                path
-                                    .toNamespacedPath(filePath)
-                                    .localeCompare(
-                                        path.toNamespacedPath(sassPath),
-                                        undefined,
-                                        {
-                                            sensitivity: "accent",
-                                        }
-                                    ) === 0;
+                const foundFiles = await vscode.workspace.findFiles(
+                    includePattern,
+                    excludePattern ? new vscode.RelativePattern(basePath, excludePattern) : null
+                );
 
-                            searchLogs
-                                .get(`Path: ${filePath}`)
-                                ?.push(
-                                    `  compare: ${result}`,
-                                    `   - Orig file path: ${filePath}`,
-                                    `   - Orig sass path: ${sassPath}`
-                                );
+                // Check if the specific file we're looking for is in the found files
+                searchFileCount = foundFiles.filter(file => {
+                    const result = path.toNamespacedPath(file.fsPath).localeCompare(
+                        path.toNamespacedPath(sassPath),
+                        undefined,
+                        {
+                            sensitivity: "accent",
+                        }
+                    ) === 0;
 
-                            return result;
-                        })
-                        .onlyCounts()
-                        .crawl(basePath)
-                        .withPromise()
-                ).files;
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        `File comparison: ${file.fsPath}`,
+                        [
+                            `  matches target: ${result}`,
+                            `   - Found file path: ${file.fsPath}`,
+                            `   - Target sass path: ${sassPath}`
+                        ],
+                        false
+                    );
 
-            OutputWindow.Show(
-                OutputLevel.Trace,
-                "Search results",
-                undefined,
-                false
-            );
+                    return result;
+                }).length;
 
-            searchLogs.forEach((logs, key) => {
-                OutputWindow.Show(OutputLevel.Trace, key, logs, false);
-            });
-
-            OutputWindow.Show(OutputLevel.Trace, null);
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "Search results - checking if file is excluded",
+                    [`Found ${searchFileCount} matching files`],
+                    false
+                );
+            } catch (error) {
+                OutputWindow.Show(
+                    OutputLevel.Warning,
+                    "Error checking file exclusion",
+                    [`File: ${sassPath}`, `Error: ${error}`]
+                );
+                return false; // Assume not excluded if we can't check
+            }
 
             // If doesn't include true then it's not been found
             if (searchFileCount > 0) {
@@ -1156,33 +1164,32 @@ export class AppModel {
                                 );
                             }
 
-                            const isMatch = picomatch(
-                                queryPattern || ["**/*.s[ac]ss"],
-                                {
-                                    ignore: excludedItems,
-                                    dot: true,
-                                    nocase: true,
-                                }
-                            );
+                            try {
+                                // Create include and exclude patterns for VS Code's findFiles
+                                const includePattern = new vscode.RelativePattern(
+                                    basePath,
+                                    (queryPattern || ["**/*.s[ac]ss"]).join(",")
+                                );
 
-                            return new fdir({
-                                includeBasePath: true,
-                                resolvePaths: true,
-                                suppressErrors: true,
-                            })
-                                .filter(
-                                    (filePath) =>
-                                        filePath
-                                            .toLowerCase()
-                                            .endsWith(".scss") ||
-                                        filePath.toLowerCase().endsWith(".sass")
-                                )
-                                .filter((filePath) =>
-                                    isMatch(path.relative(basePath, filePath))
-                                )
-                                .withBasePath()
-                                .crawl(basePath)
-                                .withPromise();
+                                // VS Code's findFiles API with exclude patterns
+                                const excludePattern = excludedItems.length > 0 
+                                    ? `{${excludedItems.join(",")}}`
+                                    : null;
+
+                                const foundFiles = await vscode.workspace.findFiles(
+                                    includePattern,
+                                    excludePattern ? new vscode.RelativePattern(basePath, excludePattern) : null
+                                );
+
+                                return foundFiles.map(file => file.fsPath);
+                            } catch (error) {
+                                OutputWindow.Show(
+                                    OutputLevel.Warning,
+                                    "Error finding SASS files in workspace folder",
+                                    [`Folder: ${folder.name}`, `Error: ${error}`]
+                                );
+                                return [];
+                            }
                         }
                     )
                 )
@@ -1481,8 +1488,237 @@ export class AppModel {
         return workspaceFolder;
     }
 
+    private setupFileWatchers(): void {
+        OutputWindow.Show(OutputLevel.Trace, "Setting up file watchers");
+
+        // Clean up any existing watchers first
+        this.disposeFileWatchers();
+
+        if (vscode.workspace.workspaceFolders) {
+            for (const folder of vscode.workspace.workspaceFolders) {
+                // Get partial patterns from settings
+                const partialPatterns = SettingsHelper.getConfigSettings<string[]>(
+                    "partialsList",
+                    folder
+                );
+
+                // Create watcher for partial files - these trigger compilation of all files
+                if (partialPatterns && partialPatterns.length > 0) {
+                    // Convert patterns to be relative (remove leading slashes)
+                    const relativePartialPatterns = AppModel.stripAnyLeadingSlashes(partialPatterns);
+                    const partialPattern = new vscode.RelativePattern(
+                        folder, 
+                        `{${relativePartialPatterns.join(",")}}`
+                    );
+                    const partialWatcher = vscode.workspace.createFileSystemWatcher(partialPattern);
+
+                    // Partial file changes trigger compilation of all files
+                    partialWatcher.onDidChange(async (uri) => {
+                        OutputWindow.Show(
+                            OutputLevel.Trace,
+                            'Partial file watcher: "onDidChange"',
+                            [`File: ${uri.fsPath}`]
+                        );
+                        await this.handlePartialFileChange(uri);
+                    });
+
+                    partialWatcher.onDidCreate(async (uri) => {
+                        OutputWindow.Show(
+                            OutputLevel.Trace,
+                            'Partial file watcher: "onDidCreate"',
+                            [`File: ${uri.fsPath}`]
+                        );
+                        await this.handlePartialFileChange(uri);
+                    });
+
+                    partialWatcher.onDidDelete(async (uri) => {
+                        OutputWindow.Show(
+                            OutputLevel.Trace,
+                            'Partial file watcher: "onDidDelete"',
+                            [`File: ${uri.fsPath}`]
+                        );
+                        await this.handlePartialFileChange(uri);
+                    });
+
+                    this._fileWatchers.push(partialWatcher);
+                }
+
+                // Create watcher for non-partial SASS/SCSS files - these only compile the single file
+                const nonPartialPattern = new vscode.RelativePattern(folder, "**/*.{sass,scss}");
+                const nonPartialWatcher = vscode.workspace.createFileSystemWatcher(nonPartialPattern);
+
+                // Non-partial file changes only compile the specific file
+                nonPartialWatcher.onDidChange(async (uri) => {
+                    // Check if this is a partial file - if so, skip (handled by partial watcher)
+                    if (await this.isPartialFile(uri, folder)) {
+                        return;
+                    }
+
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'Non-partial file watcher: "onDidChange"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    await this.handleNonPartialFileChange(uri);
+                });
+
+                nonPartialWatcher.onDidCreate(async (uri) => {
+                    // Check if this is a partial file - if so, skip (handled by partial watcher)
+                    if (await this.isPartialFile(uri, folder)) {
+                        return;
+                    }
+
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'Non-partial file watcher: "onDidCreate"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    await this.handleNonPartialFileChange(uri);
+                });
+
+                nonPartialWatcher.onDidDelete(async (uri) => {
+                    // For deleted non-partial files, just update UI - no compilation needed
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        'Non-partial file watcher: "onDidDelete"',
+                        [`File: ${uri.fsPath}`]
+                    );
+                    // Non-partial file deletion doesn't require recompilation
+                });
+
+                this._fileWatchers.push(nonPartialWatcher);
+            }
+        }
+
+        OutputWindow.Show(
+            OutputLevel.Trace,
+            `Set up ${this._fileWatchers.length} file watchers`
+        );
+    }
+
+    private disposeFileWatchers(): void {
+        OutputWindow.Show(
+            OutputLevel.Trace,
+            `Disposing ${this._fileWatchers.length} file watchers`
+        );
+
+        for (const watcher of this._fileWatchers) {
+            watcher.dispose();
+        }
+        this._fileWatchers = [];
+    }
+
+    private async isPartialFile(uri: vscode.Uri, workspaceFolder: vscode.WorkspaceFolder): Promise<boolean> {
+        const partialPatterns = SettingsHelper.getConfigSettings<string[]>(
+            "partialsList",
+            workspaceFolder
+        );
+
+        if (!partialPatterns || partialPatterns.length === 0) {
+            // Fallback to default pattern if no patterns configured
+            return path.basename(uri.fsPath).startsWith("_");
+        }
+
+        // Use VS Code's RelativePattern matching
+        const relativePartialPatterns = AppModel.stripAnyLeadingSlashes(partialPatterns);
+        
+        try {
+            const partialPattern = new vscode.RelativePattern(
+                workspaceFolder,
+                `{${relativePartialPatterns.join(",")}}`
+            );
+
+            // Find files matching the partial pattern
+            const foundFiles = await vscode.workspace.findFiles(partialPattern, null);
+            
+            // Check if our file is in the found files
+            return foundFiles.some(file => 
+                path.toNamespacedPath(file.fsPath).localeCompare(
+                    path.toNamespacedPath(uri.fsPath),
+                    undefined,
+                    { sensitivity: "accent" }
+                ) === 0
+            );
+        } catch (error) {
+            OutputWindow.Show(
+                OutputLevel.Warning,
+                "Error checking if file is partial, falling back to default",
+                [`File: ${uri.fsPath}`, `Error: ${error}`]
+            );
+            // Fallback to simple underscore check
+            return path.basename(uri.fsPath).startsWith("_");
+        }
+    }
+
+    private async handlePartialFileChange(uri: vscode.Uri): Promise<void> {
+        if (!this.isWatching) {
+            return;
+        }
+
+        try {
+            StatusBarUi.working();
+            OutputWindow.Show(
+                OutputLevel.Information,
+                "Partial file change detected - " + new Date().toLocaleString(),
+                [path.basename(uri.fsPath)]
+            );
+
+            // Partial file changes trigger compilation of all files
+            await this.GenerateAllCssAndMap();
+        } catch (err) {
+            OutputWindow.Show(
+                OutputLevel.Error,
+                "Error handling partial file change",
+                [`File: ${uri.fsPath}`, `Error: ${err}`]
+            );
+        }
+
+        this.revertUIToWatchingStatus();
+    }
+
+    private async handleNonPartialFileChange(uri: vscode.Uri): Promise<void> {
+        if (!this.isWatching) {
+            return;
+        }
+
+        try {
+            const currentFile = uri.fsPath;
+            const workspaceFolder = AppModel.getWorkspaceFolder(currentFile, !this.isWatching);
+
+            // Check if file is excluded
+            if (await this.isSassFileExcluded(currentFile, workspaceFolder)) {
+                OutputWindow.Show(OutputLevel.Trace, "File excluded", [
+                    "The file has not been compiled as it's excluded by user settings",
+                    `Path: ${currentFile}`,
+                ]);
+                return;
+            }
+
+            StatusBarUi.working();
+            OutputWindow.Show(
+                OutputLevel.Information,
+                "Non-partial file change detected - " + new Date().toLocaleString(),
+                [path.basename(currentFile)]
+            );
+
+            // Non-partial files only compile the single file
+            await this.handleSingleFile(workspaceFolder, currentFile);
+        } catch (err) {
+            OutputWindow.Show(
+                OutputLevel.Error,
+                "Error handling non-partial file change",
+                [`File: ${uri.fsPath}`, `Error: ${err}`]
+            );
+        }
+
+        this.revertUIToWatchingStatus();
+    }
+
     dispose(): void {
         OutputWindow.Show(OutputLevel.Trace, "Disposing app model");
+
+        // Dispose file watchers first
+        this.disposeFileWatchers();
 
         StatusBarUi.dispose();
         OutputWindow.dispose();
