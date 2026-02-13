@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 ### Changes
 
 - `publish.yml` now uses node version `20.x`, preventing publish errors
+- `README.md` now includes "Support me" links, along with a discord link to our NEW community server!
 
 ## [6.1.4] - 2025-07-24
 

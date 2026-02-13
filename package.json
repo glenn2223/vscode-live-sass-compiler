@@ -380,6 +380,6 @@
     },
     "announcement": {
         "onVersion": "6.1.5",
-        "message": "SassCompiler v6.1.5: Added \"Support Me\" links. Along with dependency bumps and automation fixes. Yes, there's helpful [YouTube videos](https://www.youtube.com/playlist?list=PLhdDmC4kQ8MqhX3RtLqfIwz8oaLut1m5X) too!"
+        "message": "SassCompiler v6.1.5: Added \"Support Me\" links. Along with dependency bumps, automation fixes and a link to our NEW community Discord server!\nYes, there's helpful [YouTube videos](https://www.youtube.com/playlist?list=PLhdDmC4kQ8MqhX3RtLqfIwz8oaLut1m5X) too!"
     }
 }
