@@ -330,7 +330,7 @@
         "test": "node ./out/test/runTest.js",
         "lint": "eslint -c eslint.config.mjs --ext .ts ./src/",
         "rollup": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
-        "rollup-testing": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --testing"
+        "rollup-testing": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --environment TESTING"
     },
     "dependencies": {
         "autoprefixer": "^10.4.24",

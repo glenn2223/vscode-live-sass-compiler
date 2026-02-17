@@ -6,7 +6,9 @@ import json from "@rollup/plugin-json";
 import commonjs from "@rollup/plugin-commonjs";
 import { argv } from "process";
 
-const isTest = argv.includes("--testing");
+const isTest = argv.some(
+    (arg) => arg === "TESTING" || arg.startsWith("TESTING="),
+);
 
 export default {
     input: "src/extension.ts",
