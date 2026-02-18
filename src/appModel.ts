@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { FileHelper, IFileResolver } from "./Helpers/FileHelper";
 import { SettingsHelper } from "./Helpers/SettingsHelper";
 import { IFormat } from "./Interfaces/IFormat";
-import { fdir } from "fdir";
+
 import { SassHelper } from "./Helpers/SassHelper";
 import { StatusBarUi } from "./VsCode/StatusbarUi";
 import { OutputLevel } from "./Enums/OutputLevel";
@@ -15,27 +15,25 @@ import { OutputWindow } from "./VsCode/OutputWindow";
 import { ErrorLogger } from "./VsCode/ErrorLogger";
 
 import BrowserslistError from "browserslist/error";
-import fs from "fs";
-import picomatch from "picomatch";
 import { autoprefix } from "./Helpers/Autoprefix";
 
 export class AppModel {
     isWatching: boolean;
     private _logger: ErrorLogger;
+    private _fileWatcher: vscode.FileSystemWatcher | undefined;
 
     constructor(workplaceState: vscode.Memento) {
         OutputWindow.Show(OutputLevel.Trace, "Constructing app model");
 
-        this.isWatching =
-            SettingsHelper.getConfigSettings<boolean>("watchOnLaunch");
+        this.isWatching = false;
 
         this._logger = new ErrorLogger(workplaceState);
 
-        if (this.isWatching) {
-            OutputWindow.Show(OutputLevel.Information, "Watching...");
+        if (SettingsHelper.getConfigSettings<boolean>("watchOnLaunch")) {
+            void this.StartWatching();
+        } else {
+            this.revertUIToWatchingStatusNow();
         }
-
-        StatusBarUi.init(this.isWatching);
 
         OutputWindow.Show(OutputLevel.Trace, "App model constructed");
     }
@@ -46,6 +44,9 @@ export class AppModel {
 
         if (!this.isWatching) {
             this.isWatching = !this.isWatching;
+
+            // Set up file watchers
+            this.setupFileWatcher();
 
             if (compileOnWatch) {
                 void this.compileAllFiles();
@@ -60,6 +61,9 @@ export class AppModel {
     StopWatching(): void {
         if (this.isWatching) {
             this.isWatching = !this.isWatching;
+
+            // Clean up file watchers
+            this.disposeFileWatchers();
         }
 
         this.revertUIToWatchingStatusNow();
@@ -119,30 +123,12 @@ export class AppModel {
             await this.GenerateAllCssAndMap();
         } catch (err) {
             let files: string[] | string;
-
             try {
                 files = await this.getSassFiles();
             } catch (_) {
                 files = "Error lies in getSassFiles()";
             }
-
-            if (err instanceof Error) {
-                await this._logger.LogIssueWithAlert(
-                    `Unhandled error while compiling all files. Error message: ${err.message}`,
-                    {
-                        files: files,
-                        error: ErrorLogger.PrepErrorForLogging(err),
-                    }
-                );
-            } else {
-                await this._logger.LogIssueWithAlert(
-                    "Unhandled error while compiling all files. Error message: UNKNOWN (not Error type)",
-                    {
-                        files: files,
-                        error: JSON.stringify(err),
-                    }
-                );
-            }
+            await this.logUnhandledError("compiling all files", err, { files });
         }
 
         this.revertUIToWatchingStatusNow();
@@ -154,7 +140,7 @@ export class AppModel {
     async compileCurrentFile(): Promise<void> {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Starting to compile current file"
+            "Starting to compile current file",
         );
 
         try {
@@ -162,7 +148,7 @@ export class AppModel {
                 StatusBarUi.customMessage(
                     "No file open",
                     "No file is open, ensure a file is open in the editor window",
-                    "warning"
+                    "warning",
                 );
 
                 OutputWindow.Show(OutputLevel.Debug, "No active file", [
@@ -185,13 +171,13 @@ export class AppModel {
                         "Can't process partial Sass",
                         [
                             "The file currently open in the editor window is a partial sass file, these aren't processed singly",
-                        ]
+                        ],
                     );
 
                     StatusBarUi.customMessage(
                         "Can't process partial Sass",
                         "The file currently open in the editor window is a partial sass file, these aren't processed singly",
-                        "warning"
+                        "warning",
                     );
 
                     this.revertUIToWatchingStatus();
@@ -206,7 +192,7 @@ export class AppModel {
                     StatusBarUi.customMessage(
                         "Not a Sass file",
                         "The file currently open in the editor window isn't a sass file",
-                        "warning"
+                        "warning",
                     );
 
                     this.revertUIToWatchingStatus();
@@ -218,7 +204,7 @@ export class AppModel {
             OutputWindow.Show(
                 OutputLevel.Debug,
                 "Processing the current file",
-                [`Path: ${sassPath}`]
+                [`Path: ${sassPath}`],
             );
 
             await this.handleSingleFile(workspaceFolder, sassPath);
@@ -226,121 +212,10 @@ export class AppModel {
             const sassPath = vscode.window.activeTextEditor
                 ? vscode.window.activeTextEditor.document.fileName
                 : "/* NO ACTIVE FILE, PROCESSING SHOULD NOT HAVE OCCURRED */";
-
-            if (err instanceof Error) {
-                await this._logger.LogIssueWithAlert(
-                    `Unhandled error while compiling the active file. Error message: ${err.message}`,
-                    {
-                        files: sassPath,
-                        error: ErrorLogger.PrepErrorForLogging(err),
-                    }
-                );
-            } else {
-                await this._logger.LogIssueWithAlert(
-                    "Unhandled error while compiling the active file. Error message: UNKNOWN (not Error type)",
-                    {
-                        files: sassPath,
-                        error: JSON.stringify(err),
-                    }
-                );
-            }
+            await this.logUnhandledError("compiling the active file", err, {
+                files: sassPath,
+            });
         }
-    }
-
-    /**
-     * Compiles the file that has just been saved
-     */
-    async compileOnSave(textDocument: vscode.TextDocument): Promise<void> {
-        try {
-            const currentFile = textDocument.fileName;
-
-            const workspaceFolder = AppModel.getWorkspaceFolder(
-                    currentFile,
-                    !this.isWatching
-                ),
-                sassFileType = this.confirmSassType(
-                    currentFile,
-                    workspaceFolder
-                );
-
-            if (sassFileType == SassConfirmationType.NotSass) {
-                return;
-            }
-
-            OutputWindow.Show(OutputLevel.Trace, "SASS file saved", [
-                "A SASS file has been saved, starting checks",
-            ]);
-
-            if (!this.isWatching) {
-                OutputWindow.Show(OutputLevel.Trace, "Not watching", [
-                    "The file has not been compiled as Live SASS is not watching",
-                ]);
-
-                return;
-            }
-
-            if (await this.isSassFileExcluded(currentFile, workspaceFolder)) {
-                OutputWindow.Show(OutputLevel.Trace, "File excluded", [
-                    "The file has not been compiled as it's excluded by user settings",
-                    `Path: ${currentFile}`,
-                ]);
-
-                return;
-            }
-
-            StatusBarUi.working();
-            OutputWindow.Show(
-                OutputLevel.Information,
-                "Change detected - " + new Date().toLocaleString(),
-                [path.basename(currentFile)]
-            );
-
-            if (sassFileType == SassConfirmationType.SassFile) {
-                OutputWindow.Show(OutputLevel.Trace, "File is not a partial", [
-                    "The file is not a partial so we will compile only this one",
-                    `Path: ${currentFile}`,
-                ]);
-
-                await this.handleSingleFile(workspaceFolder, currentFile);
-            } else {
-                // Partial
-                await this.GenerateAllCssAndMap();
-            }
-        } catch (err) {
-            let files: string[] | string;
-
-            try {
-                files = await this.getSassFiles();
-            } catch (_) {
-                files = "Error lies in getSassFiles()";
-            }
-
-            if (err instanceof Error) {
-                await this._logger.LogIssueWithAlert(
-                    `Unhandled error while compiling the saved changes. Error message: ${err.message}`,
-                    {
-                        triggeringFile:
-                            vscode.window.activeTextEditor?.document.fileName ??
-                            "NO SASS FILE - Should not have been called",
-                        allFiles: files,
-                        error: ErrorLogger.PrepErrorForLogging(err),
-                    }
-                );
-            } else {
-                await this._logger.LogIssueWithAlert(
-                    "Unhandled error while compiling the saved changes. Error message: UNKNOWN (not Error type)",
-                    {
-                        triggeringFile:
-                            vscode.window.activeTextEditor?.document.fileName ??
-                            "NO SASS FILE - Should not have been called",
-                        allFiles: files,
-                        error: JSON.stringify(err),
-                    }
-                );
-            }
-        }
-
-        this.revertUIToWatchingStatus();
     }
 
     //#endregion Public
@@ -349,11 +224,11 @@ export class AppModel {
 
     private async processSingleFile(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
-        sassPath: string
+        sassPath: string,
     ) {
         const formats = SettingsHelper.getConfigSettings<IFormat[]>(
             "formats",
-            workspaceFolder
+            workspaceFolder,
         );
 
         return await Promise.all(
@@ -361,22 +236,22 @@ export class AppModel {
                 OutputWindow.Show(
                     OutputLevel.Trace,
                     `Starting format ${index + 1} of ${formats.length}`,
-                    [`Settings: ${JSON.stringify(format)}`]
+                    [`Settings: ${JSON.stringify(format)}`],
                 );
 
                 // Each format
                 return await this.GenerateCssAndMap(
                     workspaceFolder,
                     sassPath,
-                    format
+                    format,
                 );
-            })
+            }),
         );
     }
 
     private async handleSingleFile(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
-        sassPath: string
+        sassPath: string,
     ) {
         const results = await this.processSingleFile(workspaceFolder, sassPath);
 
@@ -397,7 +272,7 @@ export class AppModel {
     private async GenerateCssAndMap(
         folder: vscode.WorkspaceFolder | undefined,
         sassPath: string,
-        format: IFormat
+        format: IFormat,
     ) {
         OutputWindow.Show(OutputLevel.Trace, "Starting compilation", [
             "Starting compilation of file",
@@ -415,24 +290,24 @@ export class AppModel {
             format.generateMapIncludeSources ??
             SettingsHelper.getConfigSettings<boolean>(
                 "generateMapIncludeSources",
-                folder
+                folder,
             );
 
         const options = SassHelper.toSassOptions(
             format,
-            generateMapIncludeSources
+            generateMapIncludeSources,
         );
 
         const generateMap =
                 format.generateMap ??
                 SettingsHelper.getConfigSettings<boolean>(
                     "generateMap",
-                    folder
+                    folder,
                 ),
             compileResult = await SassHelper.compileOneAsync(
                 sassPath,
                 paths.css,
-                options
+                options,
             ),
             promises: Promise<IFileResolver>[] = [];
 
@@ -468,7 +343,7 @@ export class AppModel {
             OutputWindow.Show(
                 OutputLevel.Trace,
                 "Autoprefixer isn't false, applying to file",
-                [`Path: ${sassPath}`]
+                [`Path: ${sassPath}`],
             );
 
             try {
@@ -477,7 +352,7 @@ export class AppModel {
                     map,
                     paths.css,
                     autoprefixerTarget,
-                    generateMap
+                    generateMap,
                 );
                 css = autoprefixerResult.css;
                 map = autoprefixerResult.map;
@@ -486,7 +361,7 @@ export class AppModel {
                     OutputWindow.Show(
                         OutputLevel.Error,
                         "Autoprefix error. Your changes have not been saved",
-                        [`Message: ${err.message}`, `Path: ${sassPath}`]
+                        [`Message: ${err.message}`, `Path: ${sassPath}`],
                     );
                     return false;
                 } else {
@@ -521,7 +396,7 @@ export class AppModel {
                     OutputLevel.Information,
                     null,
                     [fileResolver.FileUri],
-                    false
+                    false,
                 );
             }
         });
@@ -540,7 +415,7 @@ export class AppModel {
         OutputWindow.Show(
             OutputLevel.Debug,
             "Compiling Sass/Scss Files: ",
-            sassPaths
+            sassPaths,
         );
 
         const results = await Promise.all(
@@ -548,14 +423,14 @@ export class AppModel {
                 OutputWindow.Show(
                     OutputLevel.Trace,
                     `Starting file ${pathIndex + 1} of ${sassPaths.length}`,
-                    [`Path: ${sassPath}`]
+                    [`Path: ${sassPath}`],
                 );
 
                 return this.processSingleFile(
                     AppModel.getWorkspaceFolder(sassPath),
-                    sassPath
+                    sassPath,
                 );
-            })
+            }),
         );
 
         if (results.every((r) => r.every((s) => s))) {
@@ -572,7 +447,7 @@ export class AppModel {
     private generateCssAndMapUri(
         filePath: string,
         format: IFormat,
-        workspaceRoot?: vscode.WorkspaceFolder
+        workspaceRoot?: vscode.WorkspaceFolder,
     ) {
         OutputWindow.Show(OutputLevel.Trace, "Calculating file paths", [
             "Calculating the save paths for the css and map output files",
@@ -597,7 +472,7 @@ export class AppModel {
                     [
                         "This format has a `savePath`, using this (takes precedence if others are present)",
                         `savePath: ${format.savePath}`,
-                    ]
+                    ],
                 );
 
                 if (format.savePath.startsWith("~")) {
@@ -608,12 +483,12 @@ export class AppModel {
                             "Path starts with a tilde, so the path is relative to the current path",
                             `Original path: ${filePath}`,
                         ],
-                        false
+                        false,
                     );
 
                     generatedUri = path.join(
                         path.dirname(filePath),
-                        format.savePath.substring(1)
+                        format.savePath.substring(1),
                     );
                 } else {
                     OutputWindow.Show(
@@ -623,7 +498,7 @@ export class AppModel {
                             "No tilde so the path is relative to the workspace folder being used",
                             `Original path: ${filePath}`,
                         ],
-                        false
+                        false,
                     );
 
                     generatedUri = path.join(workspacePath, format.savePath);
@@ -635,12 +510,12 @@ export class AppModel {
                 ) {
                     OutputWindow.Show(
                         OutputLevel.Trace,
-                        `New path: ${generatedUri}`
+                        `New path: ${generatedUri}`,
                     );
                 } else {
                     OutputWindow.Show(
                         OutputLevel.Trace,
-                        `Path to continue with: ${generatedUri}`
+                        `Path to continue with: ${generatedUri}`,
                     );
 
                     FileHelper.MakeDirIfNotAvailable(generatedUri);
@@ -657,7 +532,7 @@ export class AppModel {
                     OutputLevel.Trace,
                     "Using segment replacement",
                     [`Original path: ${filePath}`],
-                    false
+                    false,
                 );
 
                 generatedUri =
@@ -671,7 +546,7 @@ export class AppModel {
                     if (
                         Object.prototype.hasOwnProperty.hasOwnProperty.call(
                             format.savePathReplacementPairs,
-                            key
+                            key,
                         )
                     ) {
                         const value = format.savePathReplacementPairs[key];
@@ -684,12 +559,12 @@ export class AppModel {
                                 OutputLevel.Trace,
                                 `Applying: ${key} => ${value}`,
                                 null,
-                                false
+                                false,
                             );
 
                             generatedUri = generatedUri.replace(
                                 key.replace(/\\/g, "/"),
-                                value.toString().replace(/\\/g, "/")
+                                value.toString().replace(/\\/g, "/"),
                             );
                         } else {
                             OutputWindow.Show(
@@ -697,7 +572,7 @@ export class AppModel {
                                 "Error: Invalid type passed to savePathReplacementPairs",
                                 [
                                     `The key "${key}" must have a string value, not "${typeof value}"`,
-                                ]
+                                ],
                             );
 
                             return null;
@@ -706,18 +581,18 @@ export class AppModel {
                 }
 
                 FileHelper.MakeDirIfNotAvailable(
-                    path.join(workspacePath, generatedUri)
+                    path.join(workspacePath, generatedUri),
                 );
 
                 OutputWindow.Show(
                     OutputLevel.Trace,
-                    `New path: ${generatedUri}`
+                    `New path: ${generatedUri}`,
                 );
 
                 filePath = path.join(
                     workspacePath,
                     generatedUri,
-                    path.basename(filePath)
+                    path.basename(filePath),
                 );
             }
         }
@@ -740,7 +615,7 @@ export class AppModel {
     private revertUIToWatchingStatus() {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Registered timeout to revert UI to correct watching status"
+            "Registered timeout to revert UI to correct watching status",
         );
 
         setTimeout(() => {
@@ -770,45 +645,48 @@ export class AppModel {
 
     private confirmSassType(
         pathUrl: string,
-        workspaceFolder?: vscode.WorkspaceFolder
+        workspaceFolder?: vscode.WorkspaceFolder,
     ): SassConfirmationType {
         const filename = path.basename(pathUrl).toLowerCase();
 
         if (filename.endsWith("sass") || filename.endsWith("scss")) {
             if (workspaceFolder === undefined) {
+                // No workspace - use simple underscore convention
                 if (filename.startsWith("_")) {
                     return SassConfirmationType.PartialFile;
                 }
-
-                return SassConfirmationType.SassFile;
-            } else {
-                const basePath = workspaceFolder.uri.fsPath;
-
-                const isPartial = picomatch(
-                    AppModel.stripAnyLeadingSlashes(
-                        SettingsHelper.getConfigSettings<string[]>(
-                            "partialsList",
-                            workspaceFolder
-                        )
-                    ),
-                    {
-                        ignore: AppModel.stripAnyLeadingSlashes(
-                            SettingsHelper.getConfigSettings<string[]>(
-                                "excludeList",
-                                workspaceFolder
-                            )
-                        ),
-                        dot: true,
-                        nocase: true,
-                    }
-                );
-
-                if (isPartial(path.relative(basePath, pathUrl))) {
-                    return SassConfirmationType.PartialFile;
-                }
-
                 return SassConfirmationType.SassFile;
             }
+
+            // Get partial patterns from settings
+            const partialPatterns = SettingsHelper.getConfigSettings<string[]>(
+                "partialsList",
+                workspaceFolder,
+            );
+
+            if (!partialPatterns || partialPatterns.length === 0) {
+                // No patterns configured - use simple underscore convention
+                if (filename.startsWith("_")) {
+                    return SassConfirmationType.PartialFile;
+                }
+                return SassConfirmationType.SassFile;
+            }
+
+            // Use VS Code's pattern matching for efficient and reliable glob matching
+            const relativePatterns =
+                AppModel.stripAnyLeadingSlashes(partialPatterns);
+
+            if (
+                AppModel.matchesGlobPattern(
+                    relativePatterns,
+                    pathUrl,
+                    workspaceFolder,
+                )
+            ) {
+                return SassConfirmationType.PartialFile;
+            }
+
+            return SassConfirmationType.SassFile;
         }
 
         return SassConfirmationType.NotSass;
@@ -816,209 +694,118 @@ export class AppModel {
 
     private async isSassFileExcluded(
         sassPath: string,
-        workspaceFolder?: vscode.WorkspaceFolder
+        workspaceFolder?: vscode.WorkspaceFolder,
     ): Promise<boolean> {
         OutputWindow.Show(
             OutputLevel.Trace,
             "Checking SASS path isn't excluded",
-            [`Path: ${sassPath}`]
+            [`Path: ${sassPath}`],
         );
 
-        if (workspaceFolder) {
-            const includeItems = SettingsHelper.getConfigSettings<
-                    string[] | null
-                >("includeItems", workspaceFolder),
-                excludeItems = AppModel.stripAnyLeadingSlashes(
-                    SettingsHelper.getConfigSettings<string[]>(
-                        "excludeList",
-                        workspaceFolder
-                    )
-                ),
-                forceBaseDirectory = SettingsHelper.getConfigSettings<
-                    string | null
-                >("forceBaseDirectory", workspaceFolder);
-
-            let fileList = ["**/*.s[ac]ss"];
-
-            if (includeItems && includeItems.length) {
-                fileList = AppModel.stripAnyLeadingSlashes(
-                    includeItems.concat(
-                        SettingsHelper.getConfigSettings<string[]>(
-                            "partialsList",
-                            workspaceFolder
-                        )
-                    )
-                );
-            }
-
-            let basePath = workspaceFolder.uri.fsPath;
-
-            if (forceBaseDirectory && forceBaseDirectory.length > 1) {
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    "`forceBaseDirectory` setting found, checking validity"
-                );
-
-                basePath = path.resolve(
-                    basePath,
-                    AppModel.stripLeadingSlash(forceBaseDirectory)
-                );
-
-                try {
-                    if (!(await fs.promises.stat(basePath)).isDirectory()) {
-                        OutputWindow.Show(
-                            OutputLevel.Critical,
-                            "Error with your `forceBaseDirectory` setting",
-                            [
-                                `Path is not a folder: ${basePath}`,
-                                `Setting: "${forceBaseDirectory}"`,
-                                `Workspace folder: ${workspaceFolder.name}`,
-                            ]
-                        );
-
-                        return false;
-                    }
-                } catch {
-                    OutputWindow.Show(
-                        OutputLevel.Critical,
-                        "Error with your `forceBaseDirectory` setting",
-                        [
-                            `Can not find path: ${basePath}`,
-                            `Setting: "${forceBaseDirectory}"`,
-                            `Workspace folder: ${workspaceFolder.name}`,
-                        ]
-                    );
-
-                    return false;
-                }
-
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    "No problem with path, changing from workspace folder",
-                    [`New folder: ${basePath}`]
-                );
-            } else {
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    "No base folder override found. Keeping workspace folder"
-                );
-            }
-
+        if (!workspaceFolder) {
             OutputWindow.Show(
                 OutputLevel.Trace,
-                "Searching folder",
-                null,
-                false
+                "No workspace folder, checking the current file",
             );
-
-            const searchLogs: Map<string, string[]> = new Map<
-                    string,
-                    string[]
-                >(),
-                isMatch = picomatch(fileList, {
-                    ignore: excludeItems,
-                    dot: true,
-                    nocase: true,
-                }),
-                searchFileCount = (
-                    await new fdir({
-                        includeBasePath: true,
-                        onlyCounts: true,
-                        resolvePaths: true,
-                        suppressErrors: true,
-                    })
-                        .filter(
-                            (filePath) =>
-                                filePath.toLowerCase().endsWith(".scss") ||
-                                filePath.toLowerCase().endsWith(".sass")
-                        )
-                        .filter((filePath) => {
-                            const result = isMatch(
-                                path.relative(basePath, filePath)
-                            );
-
-                            searchLogs.set(`Path: ${filePath}`, [
-                                `  isMatch: ${result}`,
-                                `   - Base path: ${basePath}`,
-                                `   - Rela path: ${path.relative(
-                                    basePath,
-                                    filePath
-                                )}`,
-                            ]);
-
-                            return result;
-                        })
-                        .filter((filePath) => {
-                            const result =
-                                path
-                                    .toNamespacedPath(filePath)
-                                    .localeCompare(
-                                        path.toNamespacedPath(sassPath),
-                                        undefined,
-                                        {
-                                            sensitivity: "accent",
-                                        }
-                                    ) === 0;
-
-                            searchLogs
-                                .get(`Path: ${filePath}`)
-                                ?.push(
-                                    `  compare: ${result}`,
-                                    `   - Orig file path: ${filePath}`,
-                                    `   - Orig sass path: ${sassPath}`
-                                );
-
-                            return result;
-                        })
-                        .onlyCounts()
-                        .crawl(basePath)
-                        .withPromise()
-                ).files;
-
-            OutputWindow.Show(
-                OutputLevel.Trace,
-                "Search results",
-                undefined,
-                false
-            );
-
-            searchLogs.forEach((logs, key) => {
-                OutputWindow.Show(OutputLevel.Trace, key, logs, false);
-            });
-
-            OutputWindow.Show(OutputLevel.Trace, null);
-
-            // If doesn't include true then it's not been found
-            if (searchFileCount > 0) {
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    "File found, not excluded"
-                );
-
-                return false;
-            } else {
-                OutputWindow.Show(
-                    OutputLevel.Trace,
-                    "File not found, must be excluded"
-                );
-                return true;
-            }
-        } else {
-            OutputWindow.Show(
-                OutputLevel.Trace,
-                "No workspace folder, checking the current file"
-            );
-
             return (
                 path.basename(sassPath).startsWith("_") ||
                 !(sassPath.endsWith(".scss") || sassPath.endsWith(".sass"))
             );
         }
+
+        // Get settings once at the start
+        const includeItems = SettingsHelper.getConfigSettings<string[] | null>(
+            "includeItems",
+            workspaceFolder,
+        );
+        const excludeItems = AppModel.stripAnyLeadingSlashes(
+            SettingsHelper.getConfigSettings<string[]>(
+                "excludeList",
+                workspaceFolder,
+            ),
+        );
+        const partialsList = SettingsHelper.getConfigSettings<string[]>(
+            "partialsList",
+            workspaceFolder,
+        );
+
+        // Build include patterns list
+        let includePatterns = ["**/*.s[ac]ss"];
+        if (includeItems && includeItems.length) {
+            includePatterns = AppModel.stripAnyLeadingSlashes(
+                includeItems.concat(partialsList),
+            );
+        }
+
+        // Resolve effective workspace (handles forceBaseDirectory)
+        const resolved =
+            await AppModel.resolveEffectiveBasePath(workspaceFolder);
+        if (!resolved) {
+            return false; // Error already logged by helper
+        }
+
+        const { basePath, effectiveFolder } = resolved;
+
+        // Check if the file is under the effective base directory
+        const relativePath = path.relative(basePath, sassPath);
+        if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                "File is outside effective base directory - excluded",
+                [`File: ${sassPath}`, `Base: ${basePath}`],
+            );
+            return true;
+        }
+
+        // Check if file matches include patterns
+        const isIncluded = AppModel.matchesGlobPattern(
+            includePatterns,
+            sassPath,
+            effectiveFolder,
+        );
+
+        OutputWindow.Show(OutputLevel.Trace, "Include pattern check", [
+            `File: ${sassPath}`,
+            `Included: ${isIncluded}`,
+        ]);
+
+        if (!isIncluded) {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                "File doesn't match include patterns - excluded",
+            );
+            return true;
+        }
+
+        // Check if file matches exclude patterns
+        if (excludeItems.length > 0) {
+            const isExcluded = AppModel.matchesGlobPattern(
+                excludeItems,
+                sassPath,
+                effectiveFolder,
+            );
+
+            OutputWindow.Show(OutputLevel.Trace, "Exclude pattern check", [
+                `File: ${sassPath}`,
+                `Excluded: ${isExcluded}`,
+            ]);
+
+            if (isExcluded) {
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "File matches exclude patterns - excluded",
+                );
+                return true;
+            }
+        }
+
+        OutputWindow.Show(OutputLevel.Trace, "File is not excluded");
+        return false;
     }
 
     private async getSassFiles(
         queryPattern?: string[],
-        isDebugging = false
+        isDebugging = false,
     ): Promise<string[]> {
         OutputWindow.Show(OutputLevel.Trace, "Getting SASS files", [
             `Query pattern: ${queryPattern}`,
@@ -1031,162 +818,102 @@ export class AppModel {
             vscode.workspace.workspaceFolders &&
             vscode.workspace.workspaceFolders.length > 0
         ) {
-            (
-                await Promise.all(
-                    vscode.workspace.workspaceFolders.map(
-                        async (folder, index) => {
-                            OutputWindow.Show(
-                                OutputLevel.Trace,
-                                `Checking folder ${index + 1} of ${
-                                    vscode.workspace.workspaceFolders!.length
-                                }`,
-                                [`Folder: ${folder.name}`]
-                            );
+            const results = await Promise.all(
+                vscode.workspace.workspaceFolders.map(async (folder, index) => {
+                    OutputWindow.Show(
+                        OutputLevel.Trace,
+                        `Checking folder ${index + 1} of ${vscode.workspace.workspaceFolders!.length}`,
+                        [`Folder: ${folder.name}`],
+                    );
 
-                            const includeItems =
-                                    SettingsHelper.getConfigSettings<
-                                        string[] | null
-                                    >("includeItems", folder),
-                                forceBaseDirectory =
-                                    SettingsHelper.getConfigSettings<
-                                        string | null
-                                    >("forceBaseDirectory", folder);
+                    // Get settings once at the start
+                    const includeItems = SettingsHelper.getConfigSettings<
+                        string[] | null
+                    >("includeItems", folder);
 
-                            let basePath = folder.uri.fsPath,
-                                excludedItems = isDebugging
-                                    ? ["**/node_modules/**", ".vscode/**"]
-                                    : SettingsHelper.getConfigSettings<
-                                          string[]
-                                      >("excludeList", folder);
+                    let excludedItems = isDebugging
+                        ? ["**/node_modules/**", ".vscode/**"]
+                        : SettingsHelper.getConfigSettings<string[]>(
+                              "excludeList",
+                              folder,
+                          );
 
-                            if (queryPattern) {
-                                queryPattern = AppModel.stripAnyLeadingSlashes(
-                                    Array.isArray(queryPattern)
-                                        ? queryPattern
-                                        : [queryPattern]
-                                );
-                            } else if (includeItems && includeItems.length) {
-                                queryPattern =
-                                    AppModel.stripAnyLeadingSlashes(
-                                        includeItems
-                                    );
+                    // Determine query pattern
+                    let effectivePattern = queryPattern;
+                    if (effectivePattern) {
+                        effectivePattern = AppModel.stripAnyLeadingSlashes(
+                            Array.isArray(effectivePattern)
+                                ? effectivePattern
+                                : [effectivePattern],
+                        );
+                    } else if (includeItems && includeItems.length) {
+                        effectivePattern =
+                            AppModel.stripAnyLeadingSlashes(includeItems);
+                        OutputWindow.Show(
+                            OutputLevel.Trace,
+                            "Query pattern overwritten",
+                            [`New pattern(s): "${includeItems.join('" , "')}"`],
+                        );
+                    }
 
-                                OutputWindow.Show(
-                                    OutputLevel.Trace,
-                                    "Query pattern overwritten",
-                                    [
-                                        `New pattern(s): "${includeItems.join(
-                                            '" , "'
-                                        )}"`,
-                                    ]
-                                );
-                            }
+                    excludedItems =
+                        AppModel.stripAnyLeadingSlashes(excludedItems);
 
-                            excludedItems =
-                                AppModel.stripAnyLeadingSlashes(excludedItems);
+                    // Resolve effective workspace (handles forceBaseDirectory)
+                    const resolved =
+                        await AppModel.resolveEffectiveBasePath(folder);
+                    if (!resolved) {
+                        return null; // Error already logged by helper
+                    }
 
-                            if (
-                                forceBaseDirectory &&
-                                forceBaseDirectory.length > 1
-                            ) {
-                                OutputWindow.Show(
-                                    OutputLevel.Trace,
-                                    "`forceBaseDirectory` setting found, checking validity"
-                                );
+                    const { basePath } = resolved;
 
-                                basePath = path.resolve(
-                                    basePath,
-                                    AppModel.stripLeadingSlash(
-                                        forceBaseDirectory
-                                    )
-                                );
+                    // Add partials to excludedItems (unless debugging)
+                    if (!isDebugging) {
+                        excludedItems.push(
+                            ...AppModel.stripAnyLeadingSlashes(
+                                SettingsHelper.getConfigSettings<string[]>(
+                                    "partialsList",
+                                    folder,
+                                ),
+                            ),
+                        );
+                    }
 
-                                try {
-                                    if (
-                                        !(
-                                            await fs.promises.stat(basePath)
-                                        ).isDirectory()
-                                    ) {
-                                        OutputWindow.Show(
-                                            OutputLevel.Critical,
-                                            "Error with your `forceBaseDirectory` setting",
-                                            [
-                                                `Path is not a folder: ${basePath}`,
-                                                `Setting: "${forceBaseDirectory}"`,
-                                                `Workspace folder: ${folder.name}`,
-                                            ]
-                                        );
+                    try {
+                        const includePattern = new vscode.RelativePattern(
+                            basePath,
+                            (effectivePattern || ["**/*.s[ac]ss"]).join(","),
+                        );
 
-                                        return null;
-                                    }
-                                } catch {
-                                    OutputWindow.Show(
-                                        OutputLevel.Critical,
-                                        "Error with your `forceBaseDirectory` setting",
-                                        [
-                                            `Can not find path: ${basePath}`,
-                                            `Setting: "${forceBaseDirectory}"`,
-                                            `Workspace folder: ${folder.name}`,
-                                        ]
-                                    );
+                        const excludePattern =
+                            excludedItems.length > 0
+                                ? `{${excludedItems.join(",")}}`
+                                : null;
 
-                                    return null;
-                                }
+                        const foundFiles = await vscode.workspace.findFiles(
+                            includePattern,
+                            excludePattern
+                                ? new vscode.RelativePattern(
+                                      basePath,
+                                      excludePattern,
+                                  )
+                                : null,
+                        );
 
-                                OutputWindow.Show(
-                                    OutputLevel.Trace,
-                                    "No problem with path, changing from workspace folder",
-                                    [`New folder: ${basePath}`]
-                                );
-                            } else {
-                                OutputWindow.Show(
-                                    OutputLevel.Trace,
-                                    "No base folder override found. Keeping workspace folder"
-                                );
-                            }
+                        return foundFiles.map((file) => file.fsPath);
+                    } catch (error) {
+                        OutputWindow.Show(
+                            OutputLevel.Warning,
+                            "Error finding SASS files in workspace folder",
+                            [`Folder: ${folder.name}`, `Error: ${error}`],
+                        );
+                        return [];
+                    }
+                }),
+            );
 
-                            if (!isDebugging) {
-                                // Add partials to excludedItems
-                                excludedItems.push(
-                                    ...AppModel.stripAnyLeadingSlashes(
-                                        SettingsHelper.getConfigSettings<
-                                            string[]
-                                        >("partialsList", folder)
-                                    )
-                                );
-                            }
-
-                            const isMatch = picomatch(
-                                queryPattern || ["**/*.s[ac]ss"],
-                                {
-                                    ignore: excludedItems,
-                                    dot: true,
-                                    nocase: true,
-                                }
-                            );
-
-                            return new fdir({
-                                includeBasePath: true,
-                                resolvePaths: true,
-                                suppressErrors: true,
-                            })
-                                .filter(
-                                    (filePath) =>
-                                        filePath
-                                            .toLowerCase()
-                                            .endsWith(".scss") ||
-                                        filePath.toLowerCase().endsWith(".sass")
-                                )
-                                .filter((filePath) =>
-                                    isMatch(path.relative(basePath, filePath))
-                                )
-                                .withBasePath()
-                                .crawl(basePath)
-                                .withPromise();
-                        }
-                    )
-                )
-            ).forEach((files) => {
+            results.forEach((files) => {
                 files?.forEach((file) => {
                     fileList.push(file);
                 });
@@ -1194,7 +921,7 @@ export class AppModel {
         } else {
             OutputWindow.Show(
                 OutputLevel.Trace,
-                "No workspace, must be a single file solution"
+                "No workspace, must be a single file solution",
             );
 
             if (vscode.window.activeTextEditor) {
@@ -1206,7 +933,7 @@ export class AppModel {
 
         OutputWindow.Show(
             OutputLevel.Trace,
-            `Found ${fileList.length} SASS files`
+            `Found ${fileList.length} SASS files`,
         );
 
         return fileList;
@@ -1223,7 +950,7 @@ export class AppModel {
             OutputLevel.Critical,
             "Checking current file",
             null,
-            false
+            false,
         );
 
         try {
@@ -1261,31 +988,16 @@ export class AppModel {
                     "File should get processed",
                     [
                         "If the file isn't being processed, run `liveSass.command.debugFileList`",
-                    ]
+                    ],
                 );
             }
         } catch (err) {
             const sassPath = vscode.window.activeTextEditor
                 ? vscode.window.activeTextEditor.document.fileName
                 : "/* NO ACTIVE FILE, MESSAGE SHOULD HAVE BEEN THROWN */";
-
-            if (err instanceof Error) {
-                await this._logger.LogIssueWithAlert(
-                    `Unhandled error while checking the active file. Error message: ${err.message}`,
-                    {
-                        file: sassPath,
-                        error: ErrorLogger.PrepErrorForLogging(err),
-                    }
-                );
-            } else {
-                await this._logger.LogIssueWithAlert(
-                    "Unhandled error while compiling the active file. Error message: UNKNOWN (not Error type)",
-                    {
-                        files: sassPath,
-                        error: JSON.stringify(err),
-                    }
-                );
-            }
+            await this.logUnhandledError("checking the active file", err, {
+                file: sassPath,
+            });
         }
     }
 
@@ -1301,21 +1013,21 @@ export class AppModel {
                     "--------------------",
                     "Current File",
                     "--------------------",
-                    vscode.window.activeTextEditor.document.fileName
+                    vscode.window.activeTextEditor.document.fileName,
                 );
             }
 
             outputInfo.push(
                 "--------------------",
                 "Workspace Folders",
-                "--------------------"
+                "--------------------",
             );
             if (workspaceCount === null) {
                 outputInfo.push("No workspaces, must be a single file");
             } else {
                 vscode.workspace.workspaceFolders!.map((folder) => {
                     outputInfo.push(
-                        `[${folder.index}] ${folder.name}\n${folder.uri.fsPath}`
+                        `[${folder.index}] ${folder.name}\n${folder.uri.fsPath}`,
                     );
                 });
 
@@ -1330,13 +1042,13 @@ export class AppModel {
                                     index + 1
                                 } of ${workspaceCount}`,
                                 `Path: ${folder.uri.fsPath}`,
-                                "--------------------"
+                                "--------------------",
                             );
 
                             const exclusionList =
                                 SettingsHelper.getConfigSettings<string[]>(
                                     "excludeList",
-                                    folder
+                                    folder,
                                 );
 
                             folderOutput.push(
@@ -1349,13 +1061,13 @@ export class AppModel {
                                     >("includeItems", folder)?.join(", ") ??
                                     "NULL"
                                 } ]`,
-                                `Exclude: [ ${exclusionList.join(", ")} ]`
+                                `Exclude: [ ${exclusionList.join(", ")} ]`,
                             );
 
                             folderOutput.push(
                                 "--------------------",
                                 "Included SASS Files",
-                                "--------------------"
+                                "--------------------",
                             );
                             (await this.getSassFiles()).map((file) => {
                                 folderOutput.push(file);
@@ -1364,15 +1076,15 @@ export class AppModel {
                             folderOutput.push(
                                 "--------------------",
                                 "Included Partial SASS Files",
-                                "--------------------"
+                                "--------------------",
                             );
                             (
                                 await this.getSassFiles(
                                     SettingsHelper.getConfigSettings<string[]>(
                                         "partialsList",
-                                        folder
+                                        folder,
                                     ),
-                                    true
+                                    true,
                                 )
                             ).map((file) => {
                                 folderOutput.push(file);
@@ -1381,7 +1093,7 @@ export class AppModel {
                             folderOutput.push(
                                 "--------------------",
                                 "Excluded SASS Files",
-                                "--------------------"
+                                "--------------------",
                             );
                             if (exclusionList.length > 0) {
                                 (
@@ -1394,42 +1106,197 @@ export class AppModel {
                             }
 
                             outputInfo.push(...folderOutput);
-                        }
-                    )
+                        },
+                    ),
                 );
             }
 
             OutputWindow.Show(
                 OutputLevel.Critical,
                 "Extension Info",
-                outputInfo
+                outputInfo,
             );
         } catch (err) {
             const sassPath = vscode.window.activeTextEditor
                 ? vscode.window.activeTextEditor.document.fileName
                 : "/* NO ACTIVE FILE, DETAILS BELOW */";
-
-            if (err instanceof Error) {
-                await this._logger.LogIssueWithAlert(
-                    `Unhandled error while checking the active file. Error message: ${err.message}`,
-                    {
-                        file: sassPath,
-                        error: ErrorLogger.PrepErrorForLogging(err),
-                    }
-                );
-            } else {
-                await this._logger.LogIssueWithAlert(
-                    "Unhandled error while compiling the active file. Error message: UNKNOWN (not Error type)",
-                    {
-                        files: sassPath,
-                        error: JSON.stringify(err),
-                    }
-                );
-            }
+            await this.logUnhandledError("generating file list", err, {
+                file: sassPath,
+            });
         }
     }
 
     //#endregion Debugging
+
+    //#region Helper Methods
+
+    /**
+     * Logs an unhandled error with consistent formatting.
+     * @param context Description of what was happening when the error occurred
+     * @param err The error that was caught
+     * @param additionalData Additional data to include in the log
+     */
+    private async logUnhandledError(
+        context: string,
+        err: unknown,
+        additionalData: Record<string, unknown>,
+    ): Promise<void> {
+        if (err instanceof Error) {
+            await this._logger.LogIssueWithAlert(
+                `Unhandled error while ${context}. Error message: ${err.message}`,
+                {
+                    ...additionalData,
+                    error: ErrorLogger.PrepErrorForLogging(err),
+                },
+            );
+        } else {
+            await this._logger.LogIssueWithAlert(
+                `Unhandled error while ${context}. Error message: UNKNOWN (not Error type)`,
+                {
+                    ...additionalData,
+                    error: JSON.stringify(err),
+                },
+            );
+        }
+    }
+
+    /**
+     * Resolves the effective base path for a workspace folder, accounting for forceBaseDirectory setting.
+     * @param workspaceFolder The workspace folder to resolve
+     * @returns The resolved base path and effective workspace folder, or null if validation fails
+     */
+    private static async resolveEffectiveBasePath(
+        workspaceFolder: vscode.WorkspaceFolder,
+    ): Promise<{
+        basePath: string;
+        effectiveFolder: vscode.WorkspaceFolder;
+    } | null> {
+        const forceBaseDirectory = SettingsHelper.getConfigSettings<
+            string | null
+        >("forceBaseDirectory", workspaceFolder);
+
+        let basePath = workspaceFolder.uri.fsPath;
+        let effectiveFolder = workspaceFolder;
+
+        if (forceBaseDirectory && forceBaseDirectory.length > 1) {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                "`forceBaseDirectory` setting found, checking validity",
+            );
+
+            basePath = path.resolve(
+                workspaceFolder.uri.fsPath,
+                AppModel.stripLeadingSlash(forceBaseDirectory),
+            );
+
+            try {
+                if (
+                    (await vscode.workspace.fs.stat(vscode.Uri.file(basePath)))
+                        .type !== vscode.FileType.Directory
+                ) {
+                    OutputWindow.Show(
+                        OutputLevel.Critical,
+                        "Error with your `forceBaseDirectory` setting",
+                        [
+                            `Path is not a folder: ${basePath}`,
+                            `Setting: "${forceBaseDirectory}"`,
+                            `Workspace folder: ${workspaceFolder.name}`,
+                        ],
+                    );
+                    return null;
+                }
+            } catch {
+                OutputWindow.Show(
+                    OutputLevel.Critical,
+                    "Error with your `forceBaseDirectory` setting",
+                    [
+                        `Can not find path: ${basePath}`,
+                        `Setting: "${forceBaseDirectory}"`,
+                        `Workspace folder: ${workspaceFolder.name}`,
+                    ],
+                );
+                return null;
+            }
+
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                "Using forceBaseDirectory as effective workspace",
+                [`New folder: ${basePath}`],
+            );
+
+            effectiveFolder = {
+                uri: vscode.Uri.file(basePath),
+                name: workspaceFolder.name,
+                index: workspaceFolder.index,
+            };
+        } else {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                "No base folder override found. Keeping workspace folder",
+            );
+        }
+
+        return { basePath, effectiveFolder };
+    }
+
+    //#endregion Helper Methods
+
+    /**
+     * Tests if a file matches any of the given glob patterns using VS Code's built-in pattern matching.
+     * This is more efficient and reliable than custom regex conversion.
+     * Paths and patterns are normalized to lowercase for case-insensitive matching.
+     *
+     * @param patterns Array of glob patterns to test against
+     * @param fileOrPath Either a TextDocument or a file path string
+     * @param workspaceFolder The workspace folder for relative pattern matching
+     * @returns true if the file matches any of the patterns
+     */
+    private static matchesGlobPattern(
+        patterns: string[],
+        fileOrPath: vscode.TextDocument | string,
+        workspaceFolder?: vscode.WorkspaceFolder,
+    ): boolean {
+        if (patterns.length === 0) {
+            return false;
+        }
+
+        // Normalize patterns to lowercase for case-insensitive matching
+        const normalizedPatterns = patterns.map((p) => p.toLowerCase());
+
+        // Build the document selector with all patterns (lowercase)
+        const selector: vscode.DocumentSelector = normalizedPatterns.map(
+            (pattern) => ({
+                pattern: workspaceFolder
+                    ? new vscode.RelativePattern(workspaceFolder, pattern)
+                    : pattern,
+            }),
+        );
+
+        // Get or create the document-like object for matching
+        let document:
+            | vscode.TextDocument
+            | { uri: vscode.Uri; languageId: string };
+
+        if (typeof fileOrPath === "string") {
+            // Create a minimal document-like object from the file path (lowercase for matching)
+            const uri = vscode.Uri.file(fileOrPath.toLowerCase());
+            const ext = path.extname(fileOrPath).toLowerCase();
+            document = {
+                uri,
+                languageId: ext === ".sass" ? "sass" : "scss",
+            };
+        } else {
+            // For TextDocument, create a lowercase URI version for matching
+            document = {
+                uri: vscode.Uri.file(fileOrPath.uri.fsPath.toLowerCase()),
+                languageId: fileOrPath.languageId,
+            };
+        }
+
+        // Use VS Code's pattern matching - returns score > 0 if matches
+        // @ts-expect-error - VS Code's match function accepts minimal document objects with uri and languageId
+        return vscode.languages.match(selector, document) != 0;
+    }
 
     private static stripLeadingSlash(partialPath: string): string {
         return ["\\", "/"].indexOf(partialPath.substring(0, 1)) >= 0
@@ -1438,7 +1305,7 @@ export class AppModel {
     }
 
     private static stripAnyLeadingSlashes(
-        stringArray: string[] | null
+        stringArray: string[] | null,
     ): string[] {
         if (!stringArray) {
             return [];
@@ -1451,10 +1318,10 @@ export class AppModel {
 
     private static getWorkspaceFolder(
         filePath: string,
-        suppressOutput = false
+        suppressOutput = false,
     ) {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-            vscode.Uri.file(filePath)
+            vscode.Uri.file(filePath),
         );
 
         if (!suppressOutput) {
@@ -1464,7 +1331,7 @@ export class AppModel {
                 OutputWindow.Show(
                     OutputLevel.Trace,
                     "Found the workspace folder",
-                    [`Workspace Name: ${workspaceFolder.name}`]
+                    [`Workspace Name: ${workspaceFolder.name}`],
                 );
             } else if (
                 filename.endsWith(".sass") ||
@@ -1473,7 +1340,7 @@ export class AppModel {
                 OutputWindow.Show(
                     OutputLevel.Warning,
                     "Warning: File is not in a workspace",
-                    [`Path: ${filePath}`]
+                    [`Path: ${filePath}`],
                 );
             }
         }
@@ -1481,8 +1348,163 @@ export class AppModel {
         return workspaceFolder;
     }
 
+    /**
+     * Sets up a single file watcher for all SASS/SCSS files across all workspaces.
+     * VS Code docs recommend minimizing the number of file watchers for performance.
+     */
+    private setupFileWatcher(): void {
+        OutputWindow.Show(OutputLevel.Trace, "Setting up file watcher");
+
+        // Clean up any existing watcher first
+        this.disposeFileWatchers();
+
+        // Create a single global watcher for all SASS/SCSS files
+        this._fileWatcher =
+            vscode.workspace.createFileSystemWatcher("**/*.{sass,scss}");
+
+        this._fileWatcher.onDidChange(async (uri) => {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                'File watcher: "onDidChange"',
+                [`File: ${uri.fsPath}`],
+            );
+            await this.handleFileChange(uri);
+        });
+
+        this._fileWatcher.onDidCreate(async (uri) => {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                'File watcher: "onDidCreate"',
+                [`File: ${uri.fsPath}`],
+            );
+            await this.handleFileChange(uri);
+        });
+
+        this._fileWatcher.onDidDelete(async (uri) => {
+            OutputWindow.Show(
+                OutputLevel.Trace,
+                'File watcher: "onDidDelete"',
+                [`File: ${uri.fsPath}`],
+            );
+            // Deletion of partials should trigger recompilation of all files
+            await this.handleFileChange(uri, true);
+        });
+
+        OutputWindow.Show(OutputLevel.Trace, "File watcher set up");
+    }
+
+    private disposeFileWatchers(): void {
+        if (this._fileWatcher) {
+            OutputWindow.Show(OutputLevel.Trace, "Disposing file watcher");
+            this._fileWatcher.dispose();
+            this._fileWatcher = undefined;
+        }
+    }
+
+    /**
+     * Handles a file change event by determining the file type and taking appropriate action.
+     * @param uri The URI of the changed file
+     * @param isDelete Whether this is a delete event (affects non-partial handling)
+     */
+    private async handleFileChange(
+        uri: vscode.Uri,
+        isDelete = false,
+    ): Promise<void> {
+        if (!this.isWatching) {
+            return;
+        }
+
+        const filePath = uri.fsPath;
+        const workspaceFolder = AppModel.getWorkspaceFolder(filePath, false);
+
+        // Determine file type using efficient pattern matching (no async findFiles call)
+        const fileType = this.confirmSassType(filePath, workspaceFolder);
+
+        OutputWindow.Show(OutputLevel.Trace, "File type determined", [
+            `File: ${filePath}`,
+            `Type: ${SassConfirmationType[fileType]}`,
+        ]);
+
+        switch (fileType) {
+            case SassConfirmationType.NotSass:
+                // Not a SASS file - should not happen with our watcher pattern, but handle gracefully
+                return;
+
+            case SassConfirmationType.PartialFile:
+                await this.handlePartialFileChange(uri);
+                break;
+
+            case SassConfirmationType.SassFile:
+                // For deletions, non-partial files don't need recompilation
+                if (!isDelete) {
+                    await this.handleNonPartialFileChange(uri, workspaceFolder);
+                }
+                break;
+        }
+    }
+
+    private async handlePartialFileChange(uri: vscode.Uri): Promise<void> {
+        try {
+            StatusBarUi.working();
+            OutputWindow.Show(
+                OutputLevel.Information,
+                "Partial file change detected - " + new Date().toLocaleString(),
+                [path.basename(uri.fsPath)],
+            );
+
+            // Partial file changes trigger compilation of all files
+            await this.GenerateAllCssAndMap();
+        } catch (err) {
+            OutputWindow.Show(
+                OutputLevel.Error,
+                "Error handling partial file change",
+                [`File: ${uri.fsPath}`, `Error: ${err}`],
+            );
+        }
+
+        this.revertUIToWatchingStatus();
+    }
+
+    private async handleNonPartialFileChange(
+        uri: vscode.Uri,
+        workspaceFolder?: vscode.WorkspaceFolder,
+    ): Promise<void> {
+        try {
+            const currentFile = uri.fsPath;
+
+            // Check if file is excluded
+            if (await this.isSassFileExcluded(currentFile, workspaceFolder)) {
+                OutputWindow.Show(OutputLevel.Trace, "File excluded", [
+                    "The file has not been compiled as it's excluded by user settings",
+                    `Path: ${currentFile}`,
+                ]);
+                return;
+            }
+
+            StatusBarUi.working();
+            OutputWindow.Show(
+                OutputLevel.Information,
+                "File change detected - " + new Date().toLocaleString(),
+                [path.basename(currentFile)],
+            );
+
+            // Non-partial files only compile the single file
+            await this.handleSingleFile(workspaceFolder, currentFile);
+        } catch (err) {
+            OutputWindow.Show(OutputLevel.Error, "Error handling file change", [
+                `File: ${uri.fsPath}`,
+                `Error: ${err}`,
+            ]);
+        }
+
+        this.revertUIToWatchingStatus();
+    }
+
     dispose(): void {
         OutputWindow.Show(OutputLevel.Trace, "Disposing app model");
+
+        // Dispose file watchers first
+        this.disposeFileWatchers();
 
         StatusBarUi.dispose();
         OutputWindow.dispose();

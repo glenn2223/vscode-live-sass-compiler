@@ -70,20 +70,7 @@ Any monthly donations that we get - specifically referencing this project - will
 
 **Who do you share with?**
 
-- [`fdir`](https://github.com/thecodrr/fdir)
-- [`picomatch`](https://github.com/micromatch/picomatch)
-
-**How much do you share?** (% are rounded to nearest £)
-
-- Donations < £50/m => £0
-- Donations > £50/m
-    - `fdir` => 10%
-    - `picomatch` => 10%
-- Donations > £100/m
-    - `fdir` => 5%
-    - `picomatch` => 5%
-
-**_We hope that the project(s) we're supporting also have their own open source commitment, supporting the projects that make their solution work._**
+The packages I rely on for this project already have large-scale funding or are back by for-profit organisations
 
 ## Thank you Ritwick Dey
 

@@ -4,9 +4,10 @@ import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import json from "@rollup/plugin-json";
 import commonjs from "@rollup/plugin-commonjs";
-import { argv } from "process";
 
-const isTest = argv.includes("--testing");
+const isTest = process.env.TESTING !== undefined;
+
+console.log(`Building for ${isTest ? "testing" : "production"}...`);
 
 export default {
     input: "src/extension.ts",
