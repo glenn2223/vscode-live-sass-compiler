@@ -29,16 +29,16 @@ All notable changes to this project will be documented in this file.
 
 - We have moved to the quicker `sass-embedded`. Closes [#327](https://github.com/glenn2223/vscode-live-sass-compiler/issues/327)  
   This uses the latest compiler, but drops these settings:
-  - `liveSassCompile.settings.formats[].linefeed`
-  - `liveSassCompile.settings.formats[].indentType`
-  - `liveSassCompile.settings.formats[].indentWidth`  
-      _Note: these 3 would've been dropped for SASS 2.0 anyway_
-  - `liveSassCompile.settings.useNewCompiler`
+    - `liveSassCompile.settings.formats[].linefeed`
+    - `liveSassCompile.settings.formats[].indentType`
+    - `liveSassCompile.settings.formats[].indentWidth`  
+       _Note: these 3 would've been dropped for SASS 2.0 anyway_
+    - `liveSassCompile.settings.useNewCompiler`
 - Those who historically used `useNewCompiler` will find that source contents are no longer included inline by default.  
   To restore the old behaviour, set `generateMapIncludeSources` to `true`.
 - Migrating from picomatch to native VS Code pattern matching means that the below is no longer supported:
-  - extglobs (e.g. `@(a|b)`, `!(a|b)`, `+(a|b)`, `?(a|b)`, or `*(a|b)`)
-  - negation (`!pattern`)
+    - extglobs (e.g. `@(a|b)`, `!(a|b)`, `+(a|b)`, `?(a|b)`, or `*(a|b)`)
+    - negation (`!pattern`)
 - Requires VS Code v1.95 or later
 
 ### Added
@@ -51,9 +51,9 @@ All notable changes to this project will be documented in this file.
 - Switched from `sass@1.89.2` to `sass-embedded@1.97.3` - as mentioned above
 - Start-up optimisation for when compiling is done upon launch (in larger projects)
 - **Architecture change**: Replaced `fdir` and `picomatch` with VS Code's native APIs
-  - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
-  - File pattern matching now uses `vscode.languages.match()` for efficient, reliable glob matching
-  - File discovery uses `vscode.workspace.findFiles()` instead of manual directory crawling
+    - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
+    - File pattern matching now uses `vscode.languages.match()` for efficient, reliable glob matching
+    - File discovery uses `vscode.workspace.findFiles()` instead of manual directory crawling
 
 ### Removed
 
@@ -70,7 +70,8 @@ All notable changes to this project will be documented in this file.
 - Added test badge to README & changed badge formats
 - Added funding links to README & `package.json`
 - Major code clean up: extracted helper methods, removed dead code, removed some dependencies, etc.  
-All-in-all, the `extensions.js` file is now **70% smaller**
+  All-in-all, the `extensions.js` file is now **70% smaller**
+- Updated the logo; keeping the original style but with a higher resolution
 - Code formatting and linting
 
 ## [6.1.5] - 2026-02-13
@@ -260,9 +261,9 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Breaking changes
 
 - The following deprecated settings have been removed:
-  - `liveSassCompile.settings.formats[].savePathSegmentKeys`
-  - `liveSassCompile.settings.formats[].savePathReplaceSegmentsWith`
-  - _**Note:** other deprecated settings will remain in place to maintain backwards compatibility, or until SASS2.0_
+    - `liveSassCompile.settings.formats[].savePathSegmentKeys`
+    - `liveSassCompile.settings.formats[].savePathReplaceSegmentsWith`
+    - _**Note:** other deprecated settings will remain in place to maintain backwards compatibility, or until SASS2.0_
 - Requires VS Code v1.74 or later
 
 ### Added
@@ -306,12 +307,12 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Deprecated
 
 - The new method for replacing segments in the save path is `savePathReplacementPairs`
-  - `liveSassCompile.settings.formats[].savePathSegmentKeys`
-  - `liveSassCompile.settings.formats[].savePathReplaceSegmentsWith`
+    - `liveSassCompile.settings.formats[].savePathSegmentKeys`
+    - `liveSassCompile.settings.formats[].savePathReplaceSegmentsWith`
 - When SASS v2 is released these settings will be removed, adding deprecation warning now so it can be implemented sooner
-  - `liveSassCompile.settings.formats[].linefeed`
-  - `liveSassCompile.settings.formats[].indentType`
-  - `liveSassCompile.settings.formats[].indentWidth`
+    - `liveSassCompile.settings.formats[].linefeed`
+    - `liveSassCompile.settings.formats[].indentType`
+    - `liveSassCompile.settings.formats[].indentWidth`
 
 ### Fixed
 
@@ -321,10 +322,10 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `sass` from `1.51.10` to `1.53.0`
-  - Preserve location of trailing loud comments (`/* ... */`) instead of pushing the comment to the next line
-  - Add support for calling `var()` with an empty second argument, such as `var(--side, )`
-  - Fix a bug where `meta.load-css()` would sometimes resolve relative URLs incorrectly when called from a mixin using the legacy JS API
-  - Other changes _(nothing user facing)_
+    - Preserve location of trailing loud comments (`/* ... */`) instead of pushing the comment to the next line
+    - Add support for calling `var()` with an empty second argument, such as `var(--side, )`
+    - Fix a bug where `meta.load-css()` would sometimes resolve relative URLs incorrectly when called from a mixin using the legacy JS API
+    - Other changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.4.0] - 2022-05-19
@@ -332,11 +333,11 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Added
 
 - New `liveSassCompile.settings.rootIsWorkspace` setting
-  - Treat a leading slash in imports as relative to the workspace, not the drive root
+    - Treat a leading slash in imports as relative to the workspace, not the drive root
 - New `liveSassCompile.settings.showAnnouncements` setting
-  - Toggle whether or not to show announcements when a new version is installed
+    - Toggle whether or not to show announcements when a new version is installed
 - Reference a node module with a leading tilde `~`
-  - Instead of trailing back to your node modules folder you can now reference one directly with `~myModule` or `~/myModule`
+    - Instead of trailing back to your node modules folder you can now reference one directly with `~myModule` or `~/myModule`
 
 ### Changes
 
@@ -349,14 +350,14 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `autoprefixer` from `10.4.4` to `10.4.7`
-  - Fixed `print-color-adjust` support
-  - Other changes _(nothing user facing)_
+    - Fixed `print-color-adjust` support
+    - Other changes _(nothing user facing)_
 - `postcss` from `8.4.12` to `8.4.14`
-  - Other changes _(nothing user facing)_
+    - Other changes _(nothing user facing)_
 - `sass` from `1.49.10` to `1.51.0`
-  - `@extend` now treats `:where()` the same as `:is()`
-  - **Potentially breaking change:** Change the order of maps returned by `map.deep-merge()` to match those returned by `map.merge()`. All keys that appeared in the first map will now be listed first in the same order they appeared in that map, followed by any new keys added from the second map.
-  - Other changes _(nothing user facing)_
+    - `@extend` now treats `:where()` the same as `:is()`
+    - **Potentially breaking change:** Change the order of maps returned by `map.deep-merge()` to match those returned by `map.merge()`. All keys that appeared in the first map will now be listed first in the same order they appeared in that map, followed by any new keys added from the second map.
+    - Other changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.3.1] - 2022-03-31
@@ -364,16 +365,16 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `autoprefixer` from `10.4.2` to `10.4.4`
-  - Other changes _(nothing user facing)_
+    - Other changes _(nothing user facing)_
 - `postcss` from `8.4.5` to `8.4.12`
-  - Various changes _(nothing user facing)_
+    - Various changes _(nothing user facing)_
 - `sass` from `1.49.8` to `1.49.10`
-  - Quiet deps mode now silences compiler warnings in mixins and functions that are defined in dependencies even if they're invoked from application stylesheets.
-  - In expanded mode, Sass will now emit colors using `rgb()`, `rbga()`, `hsl()`, and `hsla()` function notation if they were defined using the corresponding notation. As per our browser support policy, this change was only done once 95% of browsers were confirmed to support this output format, and so is not considered a breaking change.  
-      _Note that this output format is intended for human readability and not for interoperability with other tools. As always, Sass targets the CSS specification, and any tool that consumes Sass's output should parse all colors that are supported by the CSS spec._
-  - Fix a bug in which a color written using the four- or eight-digit hex format could be emitted as a hex color rather than a format with higher browser compatibility.
-  - Calculations are no longer simplified within supports declarations
-  - Various changes _(nothing user facing)_
+    - Quiet deps mode now silences compiler warnings in mixins and functions that are defined in dependencies even if they're invoked from application stylesheets.
+    - In expanded mode, Sass will now emit colors using `rgb()`, `rbga()`, `hsl()`, and `hsla()` function notation if they were defined using the corresponding notation. As per our browser support policy, this change was only done once 95% of browsers were confirmed to support this output format, and so is not considered a breaking change.  
+       _Note that this output format is intended for human readability and not for interoperability with other tools. As always, Sass targets the CSS specification, and any tool that consumes Sass's output should parse all colors that are supported by the CSS spec._
+    - Fix a bug in which a color written using the four- or eight-digit hex format could be emitted as a hex color rather than a format with higher browser compatibility.
+    - Calculations are no longer simplified within supports declarations
+    - Various changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ### Other
@@ -389,8 +390,8 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Added
 
 - Made changes for easier migration from the original extension - Closes [#159](https://github.com/glenn2223/vscode-live-sass-compiler/issues/159)
-  - Re-added `showOutputWindow` as a deprecated setting. Then when `false` is provided it only outputs at `Warning` and above
-  - Allowed `null` in the `autoprefixer` setting. This works the same as providing `false`
+    - Re-added `showOutputWindow` as a deprecated setting. Then when `false` is provided it only outputs at `Warning` and above
+    - Allowed `null` in the `autoprefixer` setting. This works the same as providing `false`
 
 ### Other
 
@@ -423,37 +424,37 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `autoprefixer` from `10.3.7` to `10.4.2`
-  - Added `:autofill` support
-  - Fixed `::file-selector-button` data
-  - Fixed missed `-webkit-` prefix for `width: stretch`
+    - Added `:autofill` support
+    - Fixed `::file-selector-button` data
+    - Fixed missed `-webkit-` prefix for `width: stretch`
 - `fdir` from `5.1.0` to `5.2.0`
-  - Fixed a critical issue with async crawling that caused the crawler to return early
-  - Other changes _(nothing user facing)_
+    - Fixed a critical issue with async crawling that caused the crawler to return early
+    - Other changes _(nothing user facing)_
 - `picomatch` from `2.3.0` to `2.3.1`
-  - Fixes bug when a pattern containing an expression after the closing parenthesis (`/!(*.d).{ts,tsx}`) was incorrectly converted to regexp
-  - Other changes _(nothing user facing)_
+    - Fixes bug when a pattern containing an expression after the closing parenthesis (`/!(*.d).{ts,tsx}`) was incorrectly converted to regexp
+    - Other changes _(nothing user facing)_
 - `postcss` from `8.3.9` to `8.4.5`
-  - Various changes _(nothing user facing)_
+    - Various changes _(nothing user facing)_
 - `sass` from `1.37.5` to `1.49.8`
-  - _Potentially breaking bug fix:_ Change the default value of the `separator` parameter for `new SassArgumentList()` to `','` rather than `null`. This matches the API specification.
-  - _Potentially breaking bug fix:_ Properly parse custom properties in `@supports` conditions. Note that this means that SassScript expressions on the right-hand side of custom property `@supports` queries now need to be interpolated, as per <https://sass-lang.com/d/css-vars>.
-  - _Potentially breaking bug fix:_ Fix a bug where `inspect()` was not properly printing nested, empty, bracketed lists.
-  - In expanded mode, emit characters in Unicode private-use areas as escape sequences rather than literal characters.
-  - Fix a bug where quotes would be omitted for an attribute selector whose value was a single backslash.
-  - Properly consider numbers that begin with `.` as "plain CSS" for the purposes of parsing plain-CSS `min()` and `max()` functions.
-  - Allow `if` to be used as an unquoted string.
-  - Properly parse backslash escapes within `url()` expressions.
-  - Fix a couple bugs where `@extend`s could be marked as unsatisfied when multiple identical `@extend`s extended selectors across `@use` rules.
-  - Add a `charset` option that controls whether or not Sass emits a `@charset`/BOM for non-ASCII stylesheets.
-  - `min()` and `max()` expressions are once again parsed as calculations as long as they contain only syntax that's allowed in calculation expressions. To avoid the backwards-compatibility issues that were present in 1.40.0, they now allow unitless numbers to be mixed with numbers with units just like the global `min()` and `max()` functions. Similarly, `+` and `-` operations within `min()` and `max()` functions allow unitless numbers to be mixed with numbers with units.
-  - Fix a bug where Sass variables and function calls in calculations weren't being resolved correctly if there was a parenthesized interpolation elsewhere in the file.
-  - Add support for the `logger` option. This takes an object that can define `warn` or `debug` methods to add custom handling for messages emitted by the Sass compiler. See the JS API docs for details.
+    - _Potentially breaking bug fix:_ Change the default value of the `separator` parameter for `new SassArgumentList()` to `','` rather than `null`. This matches the API specification.
+    - _Potentially breaking bug fix:_ Properly parse custom properties in `@supports` conditions. Note that this means that SassScript expressions on the right-hand side of custom property `@supports` queries now need to be interpolated, as per <https://sass-lang.com/d/css-vars>.
+    - _Potentially breaking bug fix:_ Fix a bug where `inspect()` was not properly printing nested, empty, bracketed lists.
+    - In expanded mode, emit characters in Unicode private-use areas as escape sequences rather than literal characters.
+    - Fix a bug where quotes would be omitted for an attribute selector whose value was a single backslash.
+    - Properly consider numbers that begin with `.` as "plain CSS" for the purposes of parsing plain-CSS `min()` and `max()` functions.
+    - Allow `if` to be used as an unquoted string.
+    - Properly parse backslash escapes within `url()` expressions.
+    - Fix a couple bugs where `@extend`s could be marked as unsatisfied when multiple identical `@extend`s extended selectors across `@use` rules.
+    - Add a `charset` option that controls whether or not Sass emits a `@charset`/BOM for non-ASCII stylesheets.
+    - `min()` and `max()` expressions are once again parsed as calculations as long as they contain only syntax that's allowed in calculation expressions. To avoid the backwards-compatibility issues that were present in 1.40.0, they now allow unitless numbers to be mixed with numbers with units just like the global `min()` and `max()` functions. Similarly, `+` and `-` operations within `min()` and `max()` functions allow unitless numbers to be mixed with numbers with units.
+    - Fix a bug where Sass variables and function calls in calculations weren't being resolved correctly if there was a parenthesized interpolation elsewhere in the file.
+    - Add support for the `logger` option. This takes an object that can define `warn` or `debug` methods to add custom handling for messages emitted by the Sass compiler. See the JS API docs for details.
       **Please note:** this will now print warnings for any divisions using `/`, please use the new `math.div(100, 20)` function or `calc(100 / 20)`
-  - Improve the error message when the default namespace of a `@use` rule is not a valid identifier.
-  - Improve performance
-  - Fix a bug where calculations with different operators were incorrectly considered equal.
-  - Properly parse attribute selectors with empty namespaces.
-  - Various changes _(nothing user facing)_
+    - Improve the error message when the default namespace of a `@use` rule is not a valid identifier.
+    - Improve performance
+    - Fix a bug where calculations with different operators were incorrectly considered equal.
+    - Properly parse attribute selectors with empty namespaces.
+    - Various changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.1.1] - 2021-10-11
@@ -465,14 +466,14 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `postcss` from `8.3.6` to `8.3.9`
-  - Replaced `colorette` with `picocolors`
-  - Other changes _(nothing user facing)_
+    - Replaced `colorette` with `picocolors`
+    - Other changes _(nothing user facing)_
 - `autoprefixer` from `10.3.1` to `10.3.7`
-  - Fixed `::file-selector-button` support
-  - Fixed `stretch` value in latest Firefox
-  - Reduced package size
-  - Replaced `colorette` with `picocolors`
-  - Other changes _(nothing user facing)_
+    - Fixed `::file-selector-button` support
+    - Fixed `stretch` value in latest Firefox
+    - Reduced package size
+    - Replaced `colorette` with `picocolors`
+    - Other changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.1.0] - 2021-08-06
@@ -489,18 +490,18 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 
 - New settings to support all other SASS output formatting options - Closes [#82](https://github.com/glenn2223/vscode-live-sass-compiler/issues/82)  
   The new settings are:
-  - `liveSassCompile.settings.formats.linefeed` - control the line terminator used
-  - `liveSassCompile.settings.formats.indentType` - control whether indents are spaces or tabs
-  - `liveSassCompile.settings.formats.indentWidth` - control the width of the indentation
+    - `liveSassCompile.settings.formats.linefeed` - control the line terminator used
+    - `liveSassCompile.settings.formats.indentType` - control whether indents are spaces or tabs
+    - `liveSassCompile.settings.formats.indentWidth` - control the width of the indentation
 - New commands to change the `showOutputOn` from the command pallete - Closes [#63](https://github.com/glenn2223/vscode-live-sass-compiler/issues/63)  
   Having these commands in the pallete also means that key combos can be set for each  
   The new commands are:
-  - `liveSass.command.showOutputOn.trace`
-  - `liveSass.command.showOutputOn.debug`
-  - `liveSass.command.showOutputOn.information`
-  - `liveSass.command.showOutputOn.warning`
-  - `liveSass.command.showOutputOn.error`
-  - `liveSass.command.showOutputOn.none`
+    - `liveSass.command.showOutputOn.trace`
+    - `liveSass.command.showOutputOn.debug`
+    - `liveSass.command.showOutputOn.information`
+    - `liveSass.command.showOutputOn.warning`
+    - `liveSass.command.showOutputOn.error`
+    - `liveSass.command.showOutputOn.none`
 
 ### Changes
 
@@ -511,39 +512,39 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `sass` from `1.32.12` to `1.37.5`
-  - **Potentially breaking bug fix:** Properly throw an error for Unicode ranges that have too many `?`s after hexadecimal digits, such as `U+12345??`
-  - **Potentially breaking bug fix:** Fixed a bug where certain local variable declarations nested within multiple `@if` statements would incorrectly override a global variable. It's unlikely that any real stylesheets were relying on this bug, but if so they can simply add `!global` to the variable declaration to preserve the old behaviour
-  - Fix an edge case where `@extend` wouldn't affect a selector within a pseudo-selector such as `:is()` that itself extended other selectors
-  - Fix a couple bugs that could prevent some members from being found in certain files that use a mix of imports and the module system.
-  - Fix incorrect recommendation for migrating division expressions that reference namespace variables.
-  - **Potentially breaking bug fix:** Null values in `@use` and `@forward` configurations no longer override the `!default` variable, matching the behaviour of the equivalent code using `@import`.
-  - Use the proper parameter names in error messages about `string.slice`
-  - Deprecate the use of `/` for division. The new `math.div()` function should be used instead. See [this page](https://sass-lang.com/documentation/breaking-changes/slash-div) for details.
-  - Add a `list.slash()` function that returns a slash-separated list.
-  - **Potentially breaking bug fix:** The heuristics around when potentially slash-separated numbers are converted to slash-free numbers—for example, when `1/2` will be printed as `0.5` rather than `1/2`—have been slightly expanded. Previously, a number would be made slash-free if it was passed as an argument to a user-defined function, but not to a built-in function. Now it will be made slash-free in both cases. This is a behavioural change, but it's unlikely to affect any real-world stylesheets.
-  - `:is()` now behaves identically to `:matches()`.
-  - Fix a bug where non-integer numbers that were very close to integer values would be incorrectly formatted in CSS.
-  - Fix a bug where very small number and very large negative numbers would be incorrectly formatted in CSS.
-  - Fix the URL for the `@-moz-document` deprecation message.
-  - Fix a bug with `@for` loops nested inside property declarations.`
-  - Fix a couple bugs that could prevent some members from being found in certain files that use a mix of imports and the module system.
-  - Fix incorrect recommendation for migrating division expressions that reference namespace variables
-  - Fix a bug where the quiet dependency flag didn't silence warnings in some stylesheets loaded using `@import`
-  - Other changes _(nothing user facing)_
+    - **Potentially breaking bug fix:** Properly throw an error for Unicode ranges that have too many `?`s after hexadecimal digits, such as `U+12345??`
+    - **Potentially breaking bug fix:** Fixed a bug where certain local variable declarations nested within multiple `@if` statements would incorrectly override a global variable. It's unlikely that any real stylesheets were relying on this bug, but if so they can simply add `!global` to the variable declaration to preserve the old behaviour
+    - Fix an edge case where `@extend` wouldn't affect a selector within a pseudo-selector such as `:is()` that itself extended other selectors
+    - Fix a couple bugs that could prevent some members from being found in certain files that use a mix of imports and the module system.
+    - Fix incorrect recommendation for migrating division expressions that reference namespace variables.
+    - **Potentially breaking bug fix:** Null values in `@use` and `@forward` configurations no longer override the `!default` variable, matching the behaviour of the equivalent code using `@import`.
+    - Use the proper parameter names in error messages about `string.slice`
+    - Deprecate the use of `/` for division. The new `math.div()` function should be used instead. See [this page](https://sass-lang.com/documentation/breaking-changes/slash-div) for details.
+    - Add a `list.slash()` function that returns a slash-separated list.
+    - **Potentially breaking bug fix:** The heuristics around when potentially slash-separated numbers are converted to slash-free numbers—for example, when `1/2` will be printed as `0.5` rather than `1/2`—have been slightly expanded. Previously, a number would be made slash-free if it was passed as an argument to a user-defined function, but not to a built-in function. Now it will be made slash-free in both cases. This is a behavioural change, but it's unlikely to affect any real-world stylesheets.
+    - `:is()` now behaves identically to `:matches()`.
+    - Fix a bug where non-integer numbers that were very close to integer values would be incorrectly formatted in CSS.
+    - Fix a bug where very small number and very large negative numbers would be incorrectly formatted in CSS.
+    - Fix the URL for the `@-moz-document` deprecation message.
+    - Fix a bug with `@for` loops nested inside property declarations.`
+    - Fix a couple bugs that could prevent some members from being found in certain files that use a mix of imports and the module system.
+    - Fix incorrect recommendation for migrating division expressions that reference namespace variables
+    - Fix a bug where the quiet dependency flag didn't silence warnings in some stylesheets loaded using `@import`
+    - Other changes _(nothing user facing)_
 - `autoprefixer` from `10.2.5` to `10.3.1`
-  - Added `::file-selector-button` support
-  - Fixed adding wrong prefixes to `content`
-  - Fixed “no prefixes needed” warning
+    - Added `::file-selector-button` support
+    - Fixed adding wrong prefixes to `content`
+    - Fixed “no prefixes needed” warning
 - `postcss` from `8.2.14` to `8.3.6`
-  - Fixed column in `missed semicolon` error
-  - Source map performance improvements
-  - Fixed broken AST detection
-  - Other changes _(nothing user facing)_
+    - Fixed column in `missed semicolon` error
+    - Source map performance improvements
+    - Fixed broken AST detection
+    - Other changes _(nothing user facing)_
 - `fdir` from `5.0.0` to `5.1.0`
-  - Performance & memory usage has also been greatly improved due to the many internal refactoring
-  - Other changes _(nothing user facing)_
+    - Performance & memory usage has also been greatly improved due to the many internal refactoring
+    - Other changes _(nothing user facing)_
 - `picomatch` from `2.2.3` to `2.3.0`
-  - Fixes bug where file names with two dots were not being matched consistently with negation `extglobs` containing a star
+    - Fixes bug where file names with two dots were not being matched consistently with negation `extglobs` containing a star
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.0.4] - 2021-06-22
@@ -551,24 +552,24 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Security
 
 - Bumped `glob-parent` to `5.1.2`
-  - eliminate ReDoS
+    - eliminate ReDoS
 
 ## [5.0.3] - 2021-05-05
 
 ### Changes
 
 - The default for `liveSassCompile.settings.showOutputWindowOn` is now `Information`
-  - To prevent future issues like [#70](https://github.com/glenn2223/vscode-live-sass-compiler/issues/70) & [#76](https://github.com/glenn2223/vscode-live-sass-compiler/issues/76). _Where issues are created because, by default, compiling didn't output the same details that the original extension did_
+    - To prevent future issues like [#70](https://github.com/glenn2223/vscode-live-sass-compiler/issues/70) & [#76](https://github.com/glenn2223/vscode-live-sass-compiler/issues/76). _Where issues are created because, by default, compiling didn't output the same details that the original extension did_
 - Updated the documentation to match the above change - and also sorted a couple of typos
 - Removed reference to live reload in `package.json`
 
 ### Updated
 
 - `postcss` from `8.2.10` to `8.2.14`
-  - Fixed ReDoS vulnerabilities in source map parsing
-  - Other small changes _(nothing user facing)_
+    - Fixed ReDoS vulnerabilities in source map parsing
+    - Other small changes _(nothing user facing)_
 - `sass` from `1.32.11` to `1.32.12`
-  - Fix a bug that disallowed more than one module from extending the same selector from a module if that selector itself extended a selector from another upstream module.
+    - Fix a bug that disallowed more than one module from extending the same selector from a module if that selector itself extended a selector from another upstream module.
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.0.2] - 2021-04-19
@@ -576,13 +577,13 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `picomatch` from `10.2.4` to `10.2.5`
-  - Do not skip pattern separator for square brackets
-  - Other small changes _(nothing user facing)_
+    - Do not skip pattern separator for square brackets
+    - Other small changes _(nothing user facing)_
 - `postcss` from `8.2.9` to `8.2.10`
-  - Fixed ReDoS vulnerabilities in source map parsing
-  - Other small changes _(nothing user facing)_
+    - Fixed ReDoS vulnerabilities in source map parsing
+    - Other small changes _(nothing user facing)_
 - `sass` from `1.32.8` to `1.32.11`
-  - Small changes _(nothing user facing)_
+    - Small changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ## [5.0.1] - 2021-04-07
@@ -601,34 +602,34 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 
 - Not dependant on `ritwickdey.LiveServer` as there was no actual code dependencies in the extension ([#23](https://github.com/glenn2223/vscode-live-sass-compiler/issues/23)). If you require the Live Server extension, it can still be installed from [here](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
 - Changes to the `showOutputWindow` setting, **now called `showOutputWindowOn`** ([#26](https://github.com/glenn2223/vscode-live-sass-compiler/issues/26))
-  - The system now acts as more of a logger rather than a mass of information
-  - Accepted values are now `Trace`, `Debug`, `Information`, `Warning`, `Error` or `None`
-  - The default is now `Warning`
+    - The system now acts as more of a logger rather than a mass of information
+    - Accepted values are now `Trace`, `Debug`, `Information`, `Warning`, `Error` or `None`
+    - The default is now `Warning`
 - Changes to [`autoprefix` settings](https://github.com/glenn2223/vscode-live-sass-compiler/blob/master/docs/settings.md#livesasscompilesettingsautoprefix) ([#41](https://github.com/glenn2223/vscode-live-sass-compiler/issues/41))
-  - The default is now `defaults` _(as per Autoprefixer recommendations)_
-  - The setting no longer accepts `string[] OR null`, but a `string[] OR boolean`
-    - Rather than `null`, you now use `false`
+    - The default is now `defaults` _(as per Autoprefixer recommendations)_
+    - The setting no longer accepts `string[] OR null`, but a `string[] OR boolean`
+        - Rather than `null`, you now use `false`
 - No longer supporting `brace expansion` glob patterns ([#27](https://github.com/glenn2223/vscode-live-sass-compiler/issues/27))
-  - This is because the underlying glob pattern matching has moved from `minimatch` to `picomatch`. A full feature comparison can be found [here](https://github.com/micromatch/picomatch#library-comparisons)
+    - This is because the underlying glob pattern matching has moved from `minimatch` to `picomatch`. A full feature comparison can be found [here](https://github.com/micromatch/picomatch#library-comparisons)
 - Only works on VS Code v1.52 and newer ([#34](https://github.com/glenn2223/vscode-live-sass-compiler/issues/34))
 - Settings have been updated for continuity and to better aid extension performance ([#30](https://github.com/glenn2223/vscode-live-sass-compiler/issues/30))
-  - `formats[].savePath` must start with a path separator but not end in one
-  - `includeItems` must start with a path separator and end in either `.sass` or `.scss` (for performance purposes)
-  - `forceBaseDirectory` must start with a path separator but not end in one
+    - `formats[].savePath` must start with a path separator but not end in one
+    - `includeItems` must start with a path separator and end in either `.sass` or `.scss` (for performance purposes)
+    - `forceBaseDirectory` must start with a path separator but not end in one
 
 ### Added
 
 - When `autoprefix` is true we will search for either:
-  - a `.browserlistsrc` file or,
-  - `"browserslist": [ string[] ]` in a `package.json` file
+    - a `.browserlistsrc` file or,
+    - `"browserslist": [ string[] ]` in a `package.json` file
 
-    _(This allows you to use the same setting across your solution, rather than duplicating content)_
+        _(This allows you to use the same setting across your solution, rather than duplicating content)_
 
 - Increased range of glob pattern support
-  - Full support for `extglobs`
-  - Added support for `posix brackets`
-  - Added support for `regex syntax`
-  - _Full comparison can be found [here](https://github.com/micromatch/picomatch#library-comparisons)_
+    - Full support for `extglobs`
+    - Added support for `posix brackets`
+    - Added support for `regex syntax`
+    - _Full comparison can be found [here](https://github.com/micromatch/picomatch#library-comparisons)_
 - When a change is detected the initial output now includes a date and time stamp - See [this comment](https://github.com/glenn2223/vscode-live-sass-compiler/issues/26#issuecomment-788133683) on [#26](https://github.com/glenn2223/vscode-live-sass-compiler/issues/26)
 
 ### Fixed
@@ -643,20 +644,20 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updated
 
 - `autoprefixer` from `10.2.4` to `10.2.5`
-  - Fixed `:` support in `@supports`
+    - Fixed `:` support in `@supports`
 - `postcss` from `8.2.4` to `8.2.9`
-  - Small fixes _(nothing user facing)_
+    - Small fixes _(nothing user facing)_
 - `sass` from `1.32.5` to `1.32.8`
-  - Allow `@forward...with` to take arguments that have a `!default` flag without a trailing comma.
-  - Improve the performance of unitless and single-unit numbers.
-  - Other small changes _(nothing user facing)_
+    - Allow `@forward...with` to take arguments that have a `!default` flag without a trailing comma.
+    - Improve the performance of unitless and single-unit numbers.
+    - Other small changes _(nothing user facing)_
 - Various dev dependency updates _(nothing user facing)_
 
 ### Changed
 
 - Now using `fdir` with `picomatch` instead of `glob` and `minimatch`
-  - Speed improvements, the most significant of which will be on larger projects
-  - Greater support for glob patterns
+    - Speed improvements, the most significant of which will be on larger projects
+    - Greater support for glob patterns
 - A lot of documentation tweaks
 
 ---
@@ -675,24 +676,24 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Added
 
 - New setting: `liveSassCompile.settings.forceBaseDirectory` #25
-  - A new setting that can help performance in large projects with few Sass/Scss files.
-  - ~~**Note:** multi-root workspace with different folder structures can not use this efficiently (See [setting note](https://github.com/glenn2223/vscode-live-sass-compiler/blob/1d043a0541008dfa2b53c492f6a76dce4e3d9909/docs/settings.md) & [VS Code Feature Request](https://github.com/microsoft/vscode/issues/115482) (:+1: it) )~~ Fixed in v4.4.1
+    - A new setting that can help performance in large projects with few Sass/Scss files.
+    - ~~**Note:** multi-root workspace with different folder structures can not use this efficiently (See [setting note](https://github.com/glenn2223/vscode-live-sass-compiler/blob/1d043a0541008dfa2b53c492f6a76dce4e3d9909/docs/settings.md) & [VS Code Feature Request](https://github.com/microsoft/vscode/issues/115482) (:+1: it) )~~ Fixed in v4.4.1
 - New feature: The status bar `Error` and `Success` messages can be clicked which will open the Output Window #25
 
 ### Updates
 
 - `autoprefixer` from `10.2.1` to `10.2.4`
-  - Small bug fixes (nothing user facing)
+    - Small bug fixes (nothing user facing)
 - Various dev-dependency updates
 
 ### Fixed
 
 - Part fix: Slow file handling #22. Full fix in v5 as some small breaking changes
-  - The glob pattern matcher is causing bottlenecks, reducing load calls with small patch. However moving away from glob is the end-game (which will be happening in v5)
+    - The glob pattern matcher is causing bottlenecks, reducing load calls with small patch. However moving away from glob is the end-game (which will be happening in v5)
 - Fix: `compileCurrentSass` shows wrong message on fail
-  - When you run `compileCurrentSass` and it would fail (for whatever reason) it would cause the output to show `Success` rather than `Error` (just the output was wrong, nothing else)
+    - When you run `compileCurrentSass` and it would fail (for whatever reason) it would cause the output to show `Success` rather than `Error` (just the output was wrong, nothing else)
 - Fix: Status bar inconsistencies during display changes
-  - When command bar is changing between visuals it was possible to cause the status and the shown message to be out of sync (due to clicks while setTimeouts are pending), the setup also meant you couldn't sync them again (unless you did a manual compile command)
+    - When command bar is changing between visuals it was possible to cause the status and the shown message to be out of sync (due to clicks while setTimeouts are pending), the setup also meant you couldn't sync them again (unless you did a manual compile command)
 
 ## [4.3.4] - 2021-01-21
 
@@ -701,13 +702,13 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 - Fixed [#18](https://github.com/glenn2223/vscode-live-sass-compiler/issues/18): On launch there is no output, nor any `Live SASS Compile` output selection, when the setting `watchOnLaunch` is `true`
 - Fixed: Autoprefixer warning saying `undefined` for file path when `generateMap` is `false`
 - Fixed: Autoprefixer `grid: "autoplace"` was forced
-  - If [this feature](https://github.com/postcss/autoprefixer#does-autoprefixer-polyfill-grid-layout-for-ie) is wanted then add `/* autoprefixer grid: autoplace */` to the start of your file
+    - If [this feature](https://github.com/postcss/autoprefixer#does-autoprefixer-polyfill-grid-layout-for-ie) is wanted then add `/* autoprefixer grid: autoplace */` to the start of your file
 
 ### Updates
 
 - `sass` from `1.32.4` to `1.32.5`
-  - **Potentially breaking bug fix:** When using @for with numbers that have units, the iteration variable now matches the unit of the initial number. This matches the behaviour of Ruby Sass and LibSass.
-  - Others: see [sass release notes](https://github.com/sass/dart-sass/releases/tag/1.32.5)
+    - **Potentially breaking bug fix:** When using @for with numbers that have units, the iteration variable now matches the unit of the initial number. This matches the behaviour of Ruby Sass and LibSass.
+    - Others: see [sass release notes](https://github.com/sass/dart-sass/releases/tag/1.32.5)
 
 ## [4.3.3] - 2021-01-18
 
@@ -729,16 +730,16 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Updates
 
 - `sass` from `1.30.0` to `1.32.4`
-  - Various changes, see their [changelog](https://github.com/sass/dart-sass/blob/master/CHANGELOG.md)
+    - Various changes, see their [changelog](https://github.com/sass/dart-sass/blob/master/CHANGELOG.md)
 - `autoprefixer` from `10.1.0` to `10.2.1`
-  - Fixed transition-property warnings (by @Sheraff).
+    - Fixed transition-property warnings (by @Sheraff).
 - Other, non-facing changes
-  - `eslint` from `7.16.0` to `7.17.0`
-  - `ts-loader` from `8.0.12` to `8.0.14`
-  - `postcss` from `8.2.1` to `8.2.4`
-  - `vscode-test` from `1.4.0` to `1.4.1`
-  - `webpack` from `5.11.0` to `5.14.0`
-  - `webpack-cli` from `4.2.0` to `4.3.0`
+    - `eslint` from `7.16.0` to `7.17.0`
+    - `ts-loader` from `8.0.12` to `8.0.14`
+    - `postcss` from `8.2.1` to `8.2.4`
+    - `vscode-test` from `1.4.0` to `1.4.1`
+    - `webpack` from `5.11.0` to `5.14.0`
+    - `webpack-cli` from `4.2.0` to `4.3.0`
 
 ## [4.3.1] - 2021-01-09
 
@@ -767,18 +768,18 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Added
 
 - New debugging items
-  - Two settings:
-    - `liveSass.command.debugInclusion` to check that a current file will be included based on your settings
-    - `liveSass.command.debugFileList` for a more in-depth look under the hood of the files included and excluded. Which can assist when logging issues
-  - New item in the [FAQ](https://github.com/glenn2223/vscode-live-sass-compiler/blob/master/docs/faqs.md) for extra help with glob patterns and reporting files not being compiled
+    - Two settings:
+        - `liveSass.command.debugInclusion` to check that a current file will be included based on your settings
+        - `liveSass.command.debugFileList` for a more in-depth look under the hood of the files included and excluded. Which can assist when logging issues
+    - New item in the [FAQ](https://github.com/glenn2223/vscode-live-sass-compiler/blob/master/docs/faqs.md) for extra help with glob patterns and reporting files not being compiled
 
 ### Changed
 
 - Update the returned message from Autoprefixer warnings. They now better reflect that it's a warning not an error and include file information
 - Updated some dependencies:
-  - autoprefixer: v10.1.0
-  - glob: 7.1.6
-  - postcss: 8.2.1
+    - autoprefixer: v10.1.0
+    - glob: 7.1.6
+    - postcss: 8.2.1
 - Also updated some dev dependencies (not effecting the extension itself)
 
 ### Other
@@ -790,7 +791,7 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Added
 
 - New setting `liveSassCompile.settings.compileOnWatch`
-  - When `true` it will automatically compile all Sass files when watching is started. _Default value is `true`_
+    - When `true` it will automatically compile all Sass files when watching is started. _Default value is `true`_
 
 ### Changed
 
@@ -811,20 +812,20 @@ All-in-all, the `extensions.js` file is now **70% smaller**
 ### Fixed
 
 - Changed from `libsass` to `sass` (more up to date release)
-  - Fixes: many issues + performance improvement
+    - Fixes: many issues + performance improvement
 - Map line numbers are correct after `autoprefixer` is applied
-  - Fixes: [#279](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/279), [#242](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/242), [#70](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/70)
+    - Fixes: [#279](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/279), [#242](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/242), [#70](https://github.com/ritwickdey/vscode-live-sass-compiler/issues/70)
 
 ### Added
 
 - Replace segments in the save path: added two new settings under `liveSassCompile.settings.formats`
-  - `savePathSegmentKeys` - A list of segments to be replaced
-  - `savePathReplaceSegmentsWith` - The replacement value
+    - `savePathSegmentKeys` - A list of segments to be replaced
+    - `savePathReplaceSegmentsWith` - The replacement value
 - New setting `liveSassCompile.settings.watchOnLaunch`
-  - When `true` it will automatically start watching your `.sass` or `.scss` files on launch. _Default value is `false`_
+    - When `true` it will automatically start watching your `.sass` or `.scss` files on launch. _Default value is `false`_
 - New logging mechanism
-  - Errors are logged in a workspace folder
-  - New command to help log issues for unhandled errors `liveSass.command.createIssue`
+    - Errors are logged in a workspace folder
+    - New command to help log issues for unhandled errors `liveSass.command.createIssue`
 
 ---
 
