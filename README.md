@@ -65,8 +65,8 @@ Any monthly donations that we get - specifically referencing this project - will
 
 **Who should donate to this project?**
 
-- Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them.
-- Those with a little extra money that they wouldn't mind using to support the open source community
+- Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them, and you get some marketing out of it too thanks to GitHub's sponsors section on each project and profile
+- Those with a little extra money that they wouldn't mind contributing to support the open source community
 
 **Who do you share with?**
 

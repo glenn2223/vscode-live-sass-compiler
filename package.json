@@ -8,7 +8,24 @@
         "name": "Glenn Marks",
         "url": "https://github.com/glenn2223/"
     },
-    "funding": "https://github.com/glenn2223/vscode-live-sass-compiler?sponsor",
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/TopMarksDevelopment/vscode-tab-workspaces?sponsor"
+        },
+        {
+            "type": "paypal",
+            "url": "https://www.paypal.com/donate?hosted_button_id=5UFB62RB4AWNL"
+        },
+        {
+            "type": "ko-fi",
+            "url": "https://ko-fi.com/TopMarksDevelopment"
+        },
+        {
+            "type": "buymeacoffee",
+            "url": "https://www.buymeacoffee.com/TopMarksDevelopment"
+        }
+    ],
     "sponsor": {
         "url": "https://github.com/glenn2223/vscode-live-sass-compiler?sponsor"
     },
