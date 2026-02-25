@@ -332,7 +332,7 @@
         }
     },
     "license": "MIT",
-    "icon": "images/icon2.png",
+    "icon": "images/icon.png",
     "bugs": {
         "url": "https://github.com/glenn2223/vscode-live-sass-compiler/issues"
     },
