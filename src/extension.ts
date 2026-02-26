@@ -187,26 +187,11 @@ export async function activate(
                         OutputLevel.Critical
                     );
                 }
-            ),
-            disposableOnDidSave = vscode.workspace.onDidSaveTextDocument(
-                async (textDocument) => {
-                    if (appModel.isWatching) {
-                        OutputWindow.Show(
-                            OutputLevel.Trace,
-                            'VS Code event: "onDidSaveTextDocument"'
-                        );
-                    }
-
-                    // TODO: ADD - once autoprefixer can stop caching browserslist
-                    //await appModel.browserslistChecks();
-                    await appModel.compileOnSave(textDocument);
-                }
             );
 
         context.subscriptions.push(
             disposableStartWatching,
             disposableStopWaching,
-            disposableOnDidSave,
             disposableOneTimeCompileSass,
             disposableCompileCurrentSass,
             disposableOpenOutputWindow,

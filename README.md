@@ -65,25 +65,12 @@ Any monthly donations that we get - specifically referencing this project - will
 
 **Who should donate to this project?**
 
-- Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them.
-- Those with a little extra money that they wouldn't mind using to support the open source community
+- Those who use this product and receive some kind of profit as a result. Why not allocate a small margin to those supporting your project? This would mean the world to them, and you get some marketing out of it too thanks to GitHub's sponsors section on each project and profile
+- Those with a little extra money that they wouldn't mind contributing to support the open source community
 
 **Who do you share with?**
 
-- [`fdir`](https://github.com/thecodrr/fdir)
-- [`picomatch`](https://github.com/micromatch/picomatch)
-
-**How much do you share?** (% are rounded to nearest £)
-
-- Donations < £50/m => £0
-- Donations > £50/m
-    - `fdir` => 10%
-    - `picomatch` => 10%
-- Donations > £100/m
-    - `fdir` => 5%
-    - `picomatch` => 5%
-
-**_We hope that the project(s) we're supporting also have their own open source commitment, supporting the projects that make their solution work._**
+The packages I rely on for this project already have large-scale funding or are back by for-profit organisations
 
 ## Thank you Ritwick Dey
 
