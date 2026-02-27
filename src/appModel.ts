@@ -257,6 +257,7 @@ export class AppModel {
 
         if (results.every((r) => r)) {
             StatusBarUi.compilationSuccess(this.isWatching);
+            this.hideOutputWindowIfApplicable();
         } else if (results.length) {
             StatusBarUi.compilationError(this.isWatching);
         }
@@ -435,6 +436,8 @@ export class AppModel {
 
         if (results.every((r) => r.every((s) => s))) {
             StatusBarUi.compilationSuccess(this.isWatching);
+
+            this.hideOutputWindowIfApplicable();
         } else if (results.length) {
             StatusBarUi.compilationError(this.isWatching);
         }
@@ -611,6 +614,20 @@ export class AppModel {
     //#endregion Compilation functions
 
     //#region UI manipulation functions
+
+    /**
+     * Hides the output window after successful compilation if the
+     * `hideOutputWindowOnSuccess` setting is enabled and the current
+     * output log level is Information or lower (Warning, Error, None).
+     */
+    private hideOutputWindowIfApplicable() {
+        if (
+            SettingsHelper.getHideOutputWindowOnSuccess() &&
+            SettingsHelper.getOutputLogLevel() >= OutputLevel.Information
+        ) {
+            OutputWindow.Hide();
+        }
+    }
 
     private revertUIToWatchingStatus() {
         OutputWindow.Show(

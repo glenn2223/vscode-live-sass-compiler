@@ -45,6 +45,8 @@ All notable changes to this project will be documented in this file.
 
 - New `formats[].generateMapIncludeSources` setting allows you to decide on map output on a format basis. By default, they aren't included  
   The `liveSassCompile.settings.generateMapIncludeSources` is applied if the formats setting is `null` (its default).
+- New `hideOutputWindowOnSuccess` setting: when enabled, the output window is automatically hidden after all files compile successfully. Default is `false`  
+  Only applies when `showOutputWindowOn` is `Information` or lower (`Warning`, `Error`, `None`)
 
 ### Changed
 
