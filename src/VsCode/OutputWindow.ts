@@ -1,10 +1,6 @@
-import {
-    OutputChannel,
-    window
-} from "vscode";
+import { OutputChannel, window } from "vscode";
 import { SettingsHelper } from "../Helpers/SettingsHelper";
 import { OutputLevel } from "../Enums/OutputLevel";
-
 
 export class OutputWindow {
     private static _msgChannel: OutputChannel;
@@ -22,12 +18,14 @@ export class OutputWindow {
         outputLevel: OutputLevel,
         msgHeadline: string | null,
         msgBody?: string[] | null,
-        addEndLine = true
+        addEndLine = true,
     ): void {
         const userLogLevel = SettingsHelper.getOutputLogLevel();
 
-        if (outputLevel >= userLogLevel ||
-            outputLevel === OutputLevel.Critical) {
+        if (
+            outputLevel >= userLogLevel ||
+            outputLevel === OutputLevel.Critical
+        ) {
             OutputWindow.MsgChannel.show(true);
         }
 
@@ -46,6 +44,13 @@ export class OutputWindow {
                 OutputWindow.MsgChannel.appendLine("--------------------");
             }
         }
+    }
+
+    /**
+     * Hides the output window.
+     */
+    static Hide(): void {
+        OutputWindow.MsgChannel.hide();
     }
 
     static dispose(): void {
