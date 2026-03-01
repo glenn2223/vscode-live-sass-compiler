@@ -1,0 +1,5 @@
+@use "mylib/colors/mixins" as m;
+
+.MixinTest {
+    @include m.lib-text;
+}

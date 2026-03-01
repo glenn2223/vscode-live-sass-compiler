@@ -293,9 +293,16 @@ export class AppModel {
                 folder,
             );
 
+        const pathAliases =
+            SettingsHelper.getConfigSettings<Record<string, string> | null>(
+                "pathAliases",
+                folder,
+            );
+
         const options = SassHelper.toSassOptions(
             format,
             generateMapIncludeSources,
+            pathAliases,
         );
 
         const generateMap =

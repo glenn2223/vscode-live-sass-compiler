@@ -17,7 +17,7 @@ export class SassHelper {
                 deprecation: boolean;
                 span?: SourceSpan;
                 stack?: string;
-            }
+            },
         ) => {
             OutputWindow.Show(
                 OutputLevel.Warning,
@@ -26,16 +26,16 @@ export class SassHelper {
                     this.format(
                         options.span,
                         options.stack,
-                        options.deprecation
-                    )
-                )
+                        options.deprecation,
+                    ),
+                ),
             );
         },
         debug: (message: string, options: { span?: SourceSpan }) => {
             OutputWindow.Show(
                 OutputLevel.Debug,
                 "Debug info:",
-                [message].concat(this.format(options.span))
+                [message].concat(this.format(options.span)),
             );
         },
     };
@@ -43,11 +43,14 @@ export class SassHelper {
     /**
      * Converts the given format object to Sass options.
      * @param format - The format object containing the desired options.
+     * @param sourceMapIncludeSources - Whether to include source contents in the source map.
+     * @param pathAliases - A map of path prefixes to replacement paths for resolving imports.
      * @returns The Sass options object.
      */
     static toSassOptions(
         format: IFormat,
-        sourceMapIncludeSources: boolean = false
+        sourceMapIncludeSources: boolean = false,
+        pathAliases?: Record<string, string> | null,
     ): Options<"async"> {
         return {
             style: format.format,
@@ -55,8 +58,10 @@ export class SassHelper {
                 {
                     findFileUrl: (importUrl) =>
                         // @ts-ignore: 2322
-                        SassHelper.parsePath(importUrl, (newPath) =>
-                            pathToFileURL(newPath)
+                        SassHelper.parsePath(
+                            importUrl,
+                            (newPath) => pathToFileURL(newPath),
+                            pathAliases,
                         ),
                 },
             ],
@@ -77,7 +82,7 @@ export class SassHelper {
     static async compileOneAsync(
         SassPath: string,
         targetCssUri: string,
-        options: Options<"async">
+        options: Options<"async">,
     ): Promise<ISassCompileResult> {
         try {
             const { css, sourceMap } = await compileAsync(SassPath, options);
@@ -86,8 +91,8 @@ export class SassHelper {
                 sourceMap.sources = sourceMap.sources.map((sourcePath) =>
                     path.relative(
                         path.join(targetCssUri, "../"),
-                        fileURLToPath(sourcePath)
-                    )
+                        fileURLToPath(sourcePath),
+                    ),
                 );
             }
 
@@ -114,42 +119,85 @@ export class SassHelper {
 
     private static parsePath<T>(
         importUrl: string,
-        cb: (newPath: string) => T
+        cb: (newPath: string) => T,
+        pathAliases?: Record<string, string> | null,
     ): T | null {
         if (workspace.workspaceFolders) {
-            const normalisedUrl = importUrl.replace(/\\/g, "/"),
-                urlParts = normalisedUrl
-                    .substring(1)
-                    .split("/")
-                    .filter((x) => x.length > 0);
+            const normalisedUrl = importUrl.replace(/\\/g, "/");
 
-            if (
-                normalisedUrl.startsWith("~") &&
-                normalisedUrl.indexOf("/") > -1
-            ) {
-                for (let i = 0; i < workspace.workspaceFolders.length; i++) {
-                    const workingPath = [
-                        workspace.workspaceFolders[i].uri.fsPath,
-                        "node_modules",
-                    ]
-                        .concat(...urlParts.slice(0, -1))
-                        .join("/");
+            // Path alias resolution: match prefixes longest-first
+            if (pathAliases) {
+                const sortedKeys = Object.keys(pathAliases).sort(
+                    (a, b) => b.length - a.length,
+                );
 
-                    if (existsSync(workingPath)) {
-                        return cb(
-                            workingPath +
-                                path.sep +
-                                urlParts.slice(-1).join(path.sep)
-                        );
+                for (const prefix of sortedKeys) {
+                    if (normalisedUrl.startsWith(prefix)) {
+                        const replacement = pathAliases[prefix];
+                        const remainder = normalisedUrl
+                            .substring(prefix.length)
+                            .replace(/^\//, "");
+
+                        if (
+                            replacement.startsWith("/") ||
+                            replacement.startsWith("\\")
+                        ) {
+                            // Try workspace-relative first
+                            for (
+                                let i = 0;
+                                i < workspace.workspaceFolders.length;
+                                i++
+                            ) {
+                                const resolvedPath = path.join(
+                                    workspace.workspaceFolders[i].uri.fsPath,
+                                    replacement,
+                                    remainder,
+                                );
+                                const dir = path.dirname(resolvedPath);
+
+                                if (existsSync(dir)) {
+                                    return cb(resolvedPath);
+                                }
+                            }
+
+                            // Fall back to absolute path (e.g. /usr/share/... on Linux)
+                            const absolutePath = path.join(
+                                replacement,
+                                remainder,
+                            );
+                            const absoluteDir = path.dirname(absolutePath);
+
+                            if (existsSync(absoluteDir)) {
+                                return cb(absolutePath);
+                            }
+                        } else {
+                            // Absolute path
+                            const resolvedPath = path.join(
+                                replacement,
+                                remainder,
+                            );
+                            const dir = path.dirname(resolvedPath);
+
+                            if (existsSync(dir)) {
+                                return cb(resolvedPath);
+                            }
+                        }
+
+                        // Prefix matched but path not found; stop checking
+                        // shorter prefixes to avoid incorrect fallback
+                        break;
                     }
                 }
-            } else if (normalisedUrl.startsWith("/")) {
+            }
+
+            // Absolute path resolution when rootIsWorkspace is enabled
+            if (normalisedUrl.startsWith("/")) {
                 for (let i = 0; i < workspace.workspaceFolders.length; i++) {
                     const folder = workspace.workspaceFolders[i],
                         rootIsWorkspace =
                             SettingsHelper.getConfigSettings<boolean>(
                                 "rootIsWorkspace",
-                                folder
+                                folder,
                             );
 
                     if (rootIsWorkspace) {
@@ -160,7 +208,10 @@ export class SassHelper {
 
                         if (
                             existsSync(
-                                filePath.substring(0, filePath.lastIndexOf("/"))
+                                filePath.substring(
+                                    0,
+                                    filePath.lastIndexOf("/"),
+                                ),
                             )
                         ) {
                             return cb(filePath);
@@ -176,7 +227,7 @@ export class SassHelper {
     static format(
         span: SourceSpan | undefined | null,
         stack?: string,
-        deprecated?: boolean
+        deprecated?: boolean,
     ): string[] {
         const stringArray: string[] = [];
 
@@ -186,7 +237,7 @@ export class SassHelper {
             }
         } else {
             stringArray.push(
-                this.charOfLength(span.start.line.toString().length, "╷")
+                this.charOfLength(span.start.line.toString().length, "╷"),
             );
 
             let lineNumber = span.start.line;
@@ -197,7 +248,7 @@ export class SassHelper {
                         span.context?.split("\n")[
                             lineNumber - span.start.line
                         ] ?? span.text.split("\n")[lineNumber - span.start.line]
-                    }`
+                    }`,
                 );
 
                 lineNumber++;
@@ -206,12 +257,12 @@ export class SassHelper {
             stringArray.push(
                 this.charOfLength(
                     span.start.line.toString().length,
-                    this.addUnderLine(span)
-                )
+                    this.addUnderLine(span),
+                ),
             );
 
             stringArray.push(
-                this.charOfLength(span.start.line.toString().length, "╵")
+                this.charOfLength(span.start.line.toString().length, "╵"),
             );
 
             if (span.url) {
@@ -219,14 +270,14 @@ export class SassHelper {
                 stringArray.push(
                     `${span.url.toString()}:${span.start.line}:${
                         span.start.column
-                    }`
+                    }`,
                 );
             }
         }
 
         if (deprecated === true) {
             stringArray.push(
-                "THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0"
+                "THIS IS DEPRECATED AND WILL BE REMOVED IN SASS 2.0",
             );
         }
 
@@ -236,7 +287,7 @@ export class SassHelper {
     private static charOfLength(
         charCount: number,
         suffix?: string,
-        char = " "
+        char = " ",
     ): string {
         if (charCount < 0) {
             return suffix ?? "";
@@ -262,7 +313,7 @@ export class SassHelper {
                 this.charOfLength(
                     span.end.column - span.start.column - 1,
                     "^",
-                    "."
+                    ".",
                 );
         }
 

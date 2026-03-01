@@ -323,6 +323,21 @@
                     "description": "A leading slash is relative to the workspace, not the drive (e.g C://)",
                     "scope": "resource"
                 },
+                "liveSassCompile.settings.pathAliases": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "default": {
+                        "pkg:": "/node_modules/",
+                        "~": "/node_modules/"
+                    },
+                    "description": "A map of path prefixes to replacement paths for resolving Sass @use and @import rules. When an import path starts with a key, that prefix is replaced with the corresponding value. Replacement paths starting with `/` are relative to each workspace folder root; others are treated as absolute paths. Prefixes are matched longest-first.",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "scope": "resource"
+                },
                 "liveSassCompile.settings.showAnnouncements": {
                     "type": "boolean",
                     "default": true,

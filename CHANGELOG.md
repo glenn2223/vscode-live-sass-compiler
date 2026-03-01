@@ -45,6 +45,9 @@ All notable changes to this project will be documented in this file.
 
 - New `formats[].generateMapIncludeSources` setting allows you to decide on map output on a format basis. By default, they aren't included  
   The `liveSassCompile.settings.generateMapIncludeSources` is applied if the formats setting is `null` (its default).
+- New `liveSassCompile.settings.pathAliases` setting: a configurable map of import path prefixes to replacement paths.  
+  This expands on the `~` → `node_modules` resolution, offering flexible, user-configurable system. Prefixes are matched longest-first, so specific aliases like `~/my_module` take priority over `~`.
+- The above change also means `pkg:` is supported, resolving to the `node_modules` folder by default
 
 ### Changed
 

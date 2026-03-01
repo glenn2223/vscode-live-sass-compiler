@@ -1,0 +1,5 @@
+@use "mylib/colors" as c;
+
+.AliasTest {
+    color: c.$lib-color;
+}
