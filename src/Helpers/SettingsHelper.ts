@@ -36,6 +36,10 @@ export class SettingsHelper {
         }
     }
 
+    static getHideOutputWindowOnSuccess(): boolean {
+        return this.configSettings().get("hideOutputWindowOnSuccess") as boolean ?? false;
+    }
+
     static async updateOutputLogLevel(level: OutputLevel): Promise<void> {
         let value: string | undefined;
 

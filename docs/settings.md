@@ -212,11 +212,9 @@ Autoprefix unsupported CSS properties (e.g. `transform` will also add `-ms-trans
 - A `string[]` will override the default browsers to add prefixes for
 - When `false` Autoprefixer is disabled
 - When `true` we will try and search for either:
-
-  - a `.browserslistrc` file or,
-  - `"browserslist": [ string[] ]` in your `package.json` file
-
-        If neither of these are found then Autoprefixer will use `"defaults"`
+    - a `.browserslistrc` file or,
+    - `"browserslist": [ string[] ]` in your `package.json` file  
+      If neither of these are found then Autoprefixer will use `"defaults"`
 
 **Note:** for backwards compatibility with the original extension `null` is permitted. This has the same result as providing `false`
 
@@ -233,31 +231,40 @@ Set the logging level at which errors will be shown in the output window. _There
 <summary> Choosing the right output level </summary>
 
 - `None`: almost no output
-  - Running the `liveSass.command.debugInclusion` (`Check file will be included`) command
-  - Running the `liveSass.command.debugFileList` (`Get all included files`) command
-  - When the `forceBaseDirectory` is not found or invalid (i.e. a file instead of a folder)
+    - Running the `liveSass.command.debugInclusion` (`Check file will be included`) command
+    - Running the `liveSass.command.debugFileList` (`Get all included files`) command
+    - When the `forceBaseDirectory` is not found or invalid (i.e. a file instead of a folder)
 - `Error`: this will output when compilation errors  
-     All of the above, plus
-  - When there is an error or `@error` in your SASS
-  - When autoprefixer errors, or is passed an invalid browserslist setting
-  - If saving a file to the disk fails
+   All of the above, plus
+    - When there is an error or `@error` in your SASS
+    - When autoprefixer errors, or is passed an invalid browserslist setting
+    - If saving a file to the disk fails
 - `Warning`: this will output non-critical issues  
-     All of the above, plus
-  - Primarily, workspace folder issues
+   All of the above, plus
+    - Primarily, workspace folder issues
 - `Information`: this will output file information  
-     All of the above, plus
-  - When compilation is starting
-  - When files have been generated (it outputs all files)
-  - When the watch state is changed
+   All of the above, plus
+    - When compilation is starting
+    - When files have been generated (it outputs all files)
+    - When the watch state is changed
 - `Debug`: this will output some info to help with debugging  
-     All of the above, plus
-  - Details as to why files aren't compiling (not SASS, no active file, etc.)
-  - Details of which files are being processed
+   All of the above, plus
+    - Details as to why files aren't compiling (not SASS, no active file, etc.)
+    - Details of which files are being processed
 - `Trace`: this is primarily to aid in resolving problems  
-     All of the above, plus
-  - A lot of sub-process by sub-process details of progress
+   All of the above, plus
+    - A lot of sub-process by sub-process details of progress
 
 </details>
+
+---
+
+## liveSassCompile.settings.hideOutputWindowOnSuccess
+
+When enabled, the output window will be automatically hidden after all files compile successfully. This only takes effect when `showOutputWindowOn` is set to `Warning` or `Error`.
+
+**Type:** `boolean`  
+**Default:** `false`
 
 ---
 
@@ -450,17 +457,17 @@ This heading actually applies to 6 different commands. However, they all share t
 Applying this command will change the output logging level that is used by this extension.
 
 - **Trace:**
-  - **Names:** `Live SASS: Show Output On: Trace`, `liveSass.command.showOutputOn.trace`
+    - **Names:** `Live SASS: Show Output On: Trace`, `liveSass.command.showOutputOn.trace`
 - **Debug:**
-  - **Names:** `Live SASS: Show Output On: Debug`, `liveSass.command.showOutputOn.debug`
+    - **Names:** `Live SASS: Show Output On: Debug`, `liveSass.command.showOutputOn.debug`
 - **Information:**
-  - **Names:** `Live SASS: Show Output On: Information`, `liveSass.command.showOutputOn.information`
+    - **Names:** `Live SASS: Show Output On: Information`, `liveSass.command.showOutputOn.information`
 - **Warning:**
-  - **Names:** `Live SASS: Show Output On: Warning`, `liveSass.command.showOutputOn.warning`
+    - **Names:** `Live SASS: Show Output On: Warning`, `liveSass.command.showOutputOn.warning`
 - **Error:**
-  - **Names:** `Live SASS: Show Output On: Error`, `liveSass.command.showOutputOn.error`
+    - **Names:** `Live SASS: Show Output On: Error`, `liveSass.command.showOutputOn.error`
 - **None:**
-  - **Names:** `Live SASS: Show Output On: None`, `liveSass.command.showOutputOn.none`
+    - **Names:** `Live SASS: Show Output On: None`, `liveSass.command.showOutputOn.none`
 
 # Notes
 
@@ -480,10 +487,10 @@ For example, if a `.code-workspace` setting is `/src/Sass` but a `settings.json`
 The final save path is dependant on two settings: `savePath` and `savePathReplacementPairs`. They can be stacked, but `savePath` is applied first.
 
 - Using `savePath`
-  - Starting with `/` or `\` means the path is relative to the workspace root
-  - Starting with `~/` or `~\` means that it's relative to the file being processed
+    - Starting with `/` or `\` means the path is relative to the workspace root
+    - Starting with `~/` or `~\` means that it's relative to the file being processed
 - Using `savePathReplacementPairs`
-  - Any keys that are found will be directly replaced with its' value. To save false matches, I'd recommend starting and ending with a slash
+    - Any keys that are found will be directly replaced with its' value. To save false matches, I'd recommend starting and ending with a slash
 
 [save path notes]: #save-path-notes
 [full posix list]: https://github.com/micromatch/picomatch#posix-brackets

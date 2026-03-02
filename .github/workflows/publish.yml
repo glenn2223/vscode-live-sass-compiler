@@ -8,6 +8,10 @@ on:
     # ALLOW MANUAL RUNS
     workflow_dispatch:
 
+# Explicit minimal permissions following security best practices
+permissions:
+    contents: write # Required to checkout code and upload release assets
+
 jobs:
     build:
         strategy:

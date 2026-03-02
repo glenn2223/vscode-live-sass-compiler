@@ -45,6 +45,8 @@ All notable changes to this project will be documented in this file.
 
 - New `formats[].generateMapIncludeSources` setting allows you to decide on map output on a format basis. By default, they aren't included  
   The `liveSassCompile.settings.generateMapIncludeSources` is applied if the formats setting is `null` (its default).
+- New `hideOutputWindowOnSuccess` setting: when enabled, the output window is automatically hidden after all files compile successfully. Default is `false`  
+  Only applies when `showOutputWindowOn` is `Warning` or `Error`
 - New `liveSassCompile.settings.pathAliases` setting: a configurable map of import path prefixes to replacement paths.  
   This expands on the `~` → `node_modules` resolution, offering flexible, user-configurable system. Prefixes are matched longest-first, so specific aliases like `~/my_module` take priority over `~`.
 - The above change also means `pkg:` is supported, resolving to the `node_modules` folder by default
@@ -76,6 +78,7 @@ All notable changes to this project will be documented in this file.
   All-in-all, the `extensions.js` file is now **70% smaller**
 - Updated the logo; keeping the original style but with a higher resolution
 - Code formatting and linting
+- Workflow runs follow security best practices with explicit minimal permissions
 
 ## [6.1.5] - 2026-02-13
 
