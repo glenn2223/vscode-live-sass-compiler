@@ -618,12 +618,12 @@ export class AppModel {
     /**
      * Hides the output window after successful compilation if the
      * `hideOutputWindowOnSuccess` setting is enabled and the current
-     * output log level is Information or lower (Warning, Error, None).
+     * output log level is Warning or higher (Warning, Error).
      */
     private hideOutputWindowIfApplicable() {
         if (
             SettingsHelper.getHideOutputWindowOnSuccess() &&
-            SettingsHelper.getOutputLogLevel() >= OutputLevel.Information
+            SettingsHelper.getOutputLogLevel() > OutputLevel.Information
         ) {
             OutputWindow.Hide();
         }

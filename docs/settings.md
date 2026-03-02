@@ -215,7 +215,7 @@ Autoprefix unsupported CSS properties (e.g. `transform` will also add `-ms-trans
     - a `.browserslistrc` file or,
     - `"browserslist": [ string[] ]` in your `package.json` file
 
-                            If neither of these are found then Autoprefixer will use `"defaults"`
+                              If neither of these are found then Autoprefixer will use `"defaults"`
 
 **Note:** for backwards compatibility with the original extension `null` is permitted. This has the same result as providing `false`
 
@@ -262,7 +262,7 @@ Set the logging level at which errors will be shown in the output window. _There
 
 ## liveSassCompile.settings.hideOutputWindowOnSuccess
 
-When enabled, the output window will be automatically hidden after all files compile successfully. This only takes effect when `showOutputWindowOn` is set to `Information` or lower (`Warning`, `Error`, `None`).
+When enabled, the output window will be automatically hidden after all files compile successfully. This only takes effect when `showOutputWindowOn` is set to `Warning` or `Error`.
 
 **Type:** `boolean`  
 **Default:** `false`
