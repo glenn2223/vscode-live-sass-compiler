@@ -45,7 +45,7 @@ suite("SettingsHelper Tests", function () {
             await config().update("hideOutputWindowOnSuccess", undefined);
         });
 
-        test("Eligible at Information level", async () => {
+        test("Not eligible at Information level", async () => {
             await config().update("showOutputWindowOn", "Information");
             await config().update("hideOutputWindowOnSuccess", true);
 
@@ -53,8 +53,8 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                hideEnabled && logLevel >= OutputLevel.Information,
-                "Should be eligible to hide at Information level",
+                !(hideEnabled && logLevel > OutputLevel.Information),
+                "Should NOT be eligible to hide at Information level",
             );
         });
 
@@ -66,7 +66,7 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                hideEnabled && logLevel >= OutputLevel.Information,
+                hideEnabled && logLevel > OutputLevel.Information,
                 "Should be eligible to hide at Warning level",
             );
         });
@@ -79,7 +79,7 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                hideEnabled && logLevel >= OutputLevel.Information,
+                hideEnabled && logLevel > OutputLevel.Information,
                 "Should be eligible to hide at Error level",
             );
         });
@@ -92,7 +92,7 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                hideEnabled && logLevel >= OutputLevel.Information,
+                hideEnabled && logLevel > OutputLevel.Information,
                 "Should be eligible to hide at None level",
             );
         });
@@ -105,7 +105,7 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                !(hideEnabled && logLevel >= OutputLevel.Information),
+                !(hideEnabled && logLevel > OutputLevel.Information),
                 "Should NOT be eligible to hide at Debug level",
             );
         });
@@ -118,20 +118,20 @@ suite("SettingsHelper Tests", function () {
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                !(hideEnabled && logLevel >= OutputLevel.Information),
+                !(hideEnabled && logLevel > OutputLevel.Information),
                 "Should NOT be eligible to hide at Trace level",
             );
         });
 
         test("Not eligible when setting is disabled", async () => {
-            await config().update("showOutputWindowOn", "Information");
+            await config().update("showOutputWindowOn", "Warning");
             await config().update("hideOutputWindowOnSuccess", false);
 
             const logLevel = SettingsHelper.getOutputLogLevel();
             const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
 
             assert.ok(
-                !(hideEnabled && logLevel >= OutputLevel.Information),
+                !(hideEnabled && logLevel > OutputLevel.Information),
                 "Should NOT be eligible when hideOutputWindowOnSuccess is false",
             );
         });

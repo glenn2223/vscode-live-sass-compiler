@@ -300,7 +300,7 @@
                 "liveSassCompile.settings.hideOutputWindowOnSuccess": {
                     "type": "boolean",
                     "default": false,
-                    "description": "When enabled, the output window will be automatically hidden after all files compile successfully. Only applies when showOutputWindowOn is set to Information or lower (Warning, Error, None).\nDefault is `false`"
+                    "description": "When enabled, the output window will be automatically hidden after all files compile successfully. Only applies when showOutputWindowOn is set to Warning or Error.\nDefault is `false`"
                 },
                 "liveSassCompile.settings.showOutputWindow": {
                     "type": [
