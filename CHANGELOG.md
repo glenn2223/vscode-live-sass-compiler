@@ -628,8 +628,7 @@ All notable changes to this project will be documented in this file.
 - When `autoprefix` is true we will search for either:
     - a `.browserlistsrc` file or,
     - `"browserslist": [ string[] ]` in a `package.json` file
-
-                _(This allows you to use the same setting across your solution, rather than duplicating content)_
+      _(This allows you to use the same setting across your solution, rather than duplicating content)_
 
 - Increased range of glob pattern support
     - Full support for `extglobs`
