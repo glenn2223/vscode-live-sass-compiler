@@ -8,6 +8,10 @@ on:
     # ALLOW MANUAL RUNS
     workflow_dispatch:
 
+# Explicit minimal permissions following security best practices
+permissions:
+    contents: read # Required to checkout repository code
+
 jobs:
     build:
         strategy:
