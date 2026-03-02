@@ -75,6 +75,7 @@ All notable changes to this project will be documented in this file.
   All-in-all, the `extensions.js` file is now **70% smaller**
 - Updated the logo; keeping the original style but with a higher resolution
 - Code formatting and linting
+- Workflow runs follow security best practices with explicit minimal permissions
 
 ## [6.1.5] - 2026-02-13
 
