@@ -1,6 +1,7 @@
 import * as assert from "assert";
 import { Logger } from "sass-embedded";
 import path from "path";
+import * as vscode from "vscode";
 import { SassHelper } from "./SassHelper";
 
 const loggerProperty: Logger = {
@@ -122,6 +123,8 @@ suite("SassHelper toSassOptions Tests", function () {
 
 suite("SassHelper pathAliases compilation Tests", function () {
     const sampleDir = path.resolve(__dirname, "../../src/test/sample");
+    const libsDir = path.resolve(sampleDir, "libs");
+    const nodeModulesDir = path.resolve(sampleDir, "node_modules");
     const compileFormat = {
         format: "compressed" as const,
         extensionName: ".css",
@@ -132,7 +135,7 @@ suite("SassHelper pathAliases compilation Tests", function () {
 
     test("Alias resolves @use with prefix to correct path", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
-        const aliases = { mylib: "/libs/" };
+        const aliases = { mylib: libsDir };
         const options = SassHelper.toSassOptions(compileFormat, false, aliases);
 
         const result = await SassHelper.compileOneAsync(
@@ -152,7 +155,7 @@ suite("SassHelper pathAliases compilation Tests", function () {
 
     test("Alias resolves nested @use with prefix", async () => {
         const input = path.resolve(sampleDir, "alias_test_mixin.scss");
-        const aliases = { mylib: "/libs/" };
+        const aliases = { mylib: libsDir };
         const options = SassHelper.toSassOptions(compileFormat, false, aliases);
 
         const result = await SassHelper.compileOneAsync(
@@ -176,8 +179,8 @@ suite("SassHelper pathAliases compilation Tests", function () {
         // and "mylib" at a non-existent dir — if longest-first works,
         // "mylib/colors" matches and compilation succeeds
         const aliases = {
-            "mylib/colors": "/libs/colors/",
-            mylib: "/nonexistent/",
+            "mylib/colors": path.resolve(libsDir, "colors"),
+            mylib: path.resolve(sampleDir, "nonexistent"),
         };
         const options = SassHelper.toSassOptions(compileFormat, false, aliases);
 
@@ -198,7 +201,7 @@ suite("SassHelper pathAliases compilation Tests", function () {
     test("Unmatched prefix returns null and compilation fails", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
         // No alias matches "mylib" — compilation should fail
-        const aliases = { "other:": "/libs/" };
+        const aliases = { "other:": libsDir };
         const options = SassHelper.toSassOptions(compileFormat, false, aliases);
 
         const result = await SassHelper.compileOneAsync(
@@ -227,8 +230,28 @@ suite("SassHelper pathAliases compilation Tests", function () {
     });
 
     test("pkg: alias resolves to workspace node_modules path", async () => {
+        if (!vscode.workspace.workspaceFolders?.length) {
+            return;
+        }
+
         const input = path.resolve(sampleDir, "pkg_alias_test.scss");
         const aliases = { "pkg:": "/node_modules/" };
+        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+
+        const result = await SassHelper.compileOneAsync(
+            input,
+            "output.css",
+            options,
+        );
+
+        assert.equal(result.errorString, null);
+        assert.ok(result.result?.css.includes(".PkgAliasTest"));
+        assert.ok(result.result?.css.includes("#123456"));
+    });
+
+    test("pkg: alias resolves with absolute replacement path", async () => {
+        const input = path.resolve(sampleDir, "pkg_alias_test.scss");
+        const aliases = { "pkg:": nodeModulesDir };
         const options = SassHelper.toSassOptions(compileFormat, false, aliases);
 
         const result = await SassHelper.compileOneAsync(

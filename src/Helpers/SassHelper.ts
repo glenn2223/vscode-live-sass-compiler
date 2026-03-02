@@ -122,27 +122,27 @@ export class SassHelper {
         cb: (newPath: string) => T,
         pathAliases?: Record<string, string> | null,
     ): T | null {
-        if (workspace.workspaceFolders) {
-            const normalisedUrl = importUrl.replace(/\\/g, "/");
+        const normalisedUrl = importUrl.replace(/\\/g, "/");
 
-            // Path alias resolution: match prefixes longest-first
-            if (pathAliases) {
-                const sortedKeys = Object.keys(pathAliases).sort(
-                    (a, b) => b.length - a.length,
-                );
+        // Path alias resolution: match prefixes longest-first
+        if (pathAliases) {
+            const sortedKeys = Object.keys(pathAliases).sort(
+                (a, b) => b.length - a.length,
+            );
 
-                for (const prefix of sortedKeys) {
-                    if (normalisedUrl.startsWith(prefix)) {
-                        const replacement = pathAliases[prefix];
-                        const remainder = normalisedUrl
-                            .substring(prefix.length)
-                            .replace(/^\//, "");
+            for (const prefix of sortedKeys) {
+                if (normalisedUrl.startsWith(prefix)) {
+                    const replacement = pathAliases[prefix];
+                    const remainder = normalisedUrl
+                        .substring(prefix.length)
+                        .replace(/^\//, "");
 
-                        if (
-                            replacement.startsWith("/") ||
-                            replacement.startsWith("\\")
-                        ) {
-                            // Try workspace-relative first
+                    if (
+                        replacement.startsWith("/") ||
+                        replacement.startsWith("\\")
+                    ) {
+                        // Try workspace-relative first (when available)
+                        if (workspace.workspaceFolders) {
                             for (
                                 let i = 0;
                                 i < workspace.workspaceFolders.length;
@@ -159,37 +159,33 @@ export class SassHelper {
                                     return cb(resolvedPath);
                                 }
                             }
-
-                            // Fall back to absolute path (e.g. /usr/share/... on Linux)
-                            const absolutePath = path.join(
-                                replacement,
-                                remainder,
-                            );
-                            const absoluteDir = path.dirname(absolutePath);
-
-                            if (existsSync(absoluteDir)) {
-                                return cb(absolutePath);
-                            }
-                        } else {
-                            // Absolute path
-                            const resolvedPath = path.join(
-                                replacement,
-                                remainder,
-                            );
-                            const dir = path.dirname(resolvedPath);
-
-                            if (existsSync(dir)) {
-                                return cb(resolvedPath);
-                            }
                         }
 
-                        // Prefix matched but path not found; stop checking
-                        // shorter prefixes to avoid incorrect fallback
-                        break;
+                        // Fall back to absolute path (e.g. /usr/share/... on Linux)
+                        const absolutePath = path.join(replacement, remainder);
+                        const absoluteDir = path.dirname(absolutePath);
+
+                        if (existsSync(absoluteDir)) {
+                            return cb(absolutePath);
+                        }
+                    } else {
+                        // Absolute path
+                        const resolvedPath = path.join(replacement, remainder);
+                        const dir = path.dirname(resolvedPath);
+
+                        if (existsSync(dir)) {
+                            return cb(resolvedPath);
+                        }
                     }
+
+                    // Prefix matched but path not found; stop checking
+                    // shorter prefixes to avoid incorrect fallback
+                    break;
                 }
             }
+        }
 
+        if (workspace.workspaceFolders) {
             // Absolute path resolution when rootIsWorkspace is enabled
             if (normalisedUrl.startsWith("/")) {
                 for (let i = 0; i < workspace.workspaceFolders.length; i++) {
