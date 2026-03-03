@@ -47,6 +47,9 @@ All notable changes to this project will be documented in this file.
   The `liveSassCompile.settings.generateMapIncludeSources` is applied if the formats setting is `null` (its default).
 - New `hideOutputWindowOnSuccess` setting: when enabled, the output window is automatically hidden after all files compile successfully. Default is `false`  
   Only applies when `showOutputWindowOn` is `Warning` or `Error`
+- New `liveSassCompile.settings.pathAliases` setting: a configurable map of import path prefixes to replacement paths.  
+  This expands on the `~` → `node_modules` resolution, offering flexible, user-configurable system. Prefixes are matched longest-first, so specific aliases like `~/my_module` take priority over `~`.
+- The above change also means `pkg:` is supported, resolving to the `node_modules` folder by default
 
 ### Changed
 
@@ -625,8 +628,7 @@ All notable changes to this project will be documented in this file.
 - When `autoprefix` is true we will search for either:
     - a `.browserlistsrc` file or,
     - `"browserslist": [ string[] ]` in a `package.json` file
-
-        _(This allows you to use the same setting across your solution, rather than duplicating content)_
+      _(This allows you to use the same setting across your solution, rather than duplicating content)_
 
 - Increased range of glob pattern support
     - Full support for `extglobs`

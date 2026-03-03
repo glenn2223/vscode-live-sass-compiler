@@ -1,0 +1,5 @@
+@use "pkg:npmModule/_file.scss" as module;
+
+.PkgAliasTest {
+    color: module.$pkg-color;
+}

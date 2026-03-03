@@ -329,6 +329,52 @@ Tells the compiler that a leading slash is relative to the workspace root rather
 
 ---
 
+## liveSassCompile.settings.pathAliases
+
+> ℹ This setting can vary between workspace folders - [read more][multi-rootfaq]
+
+A map of path prefixes to replacement paths for resolving Sass `@use` and `@import` rules. When an import path starts with a key, that prefix is replaced with the corresponding value. Prefixes are matched longest-first, so more specific aliases take priority.
+
+**Type:** `Record<string, string>?`  
+**Default:**
+
+```json
+{
+    "pkg:": "/node_modules/",
+    "~": "/node_modules/"
+}
+```
+
+**Path resolution rules:**
+
+- Replacement paths starting with `/` are first resolved relative to each workspace folder root. If no match is found, they are tried as absolute filesystem paths (important for Linux, where absolute paths also start with `/`)
+- Replacement paths without a leading `/` are treated as absolute paths
+- Set to `null` to disable all path alias resolution
+
+<details>
+<summary>Examples</summary>
+
+```js
+"liveSassCompile.settings.pathAliases": {
+    // Resolve @use "pkg:bootstrap" to <workspace>/node_modules/bootstrap
+    "pkg:": "/node_modules/",
+    // Resolve @use "~bootstrap" to <workspace>/node_modules/bootstrap
+    "~": "/node_modules/",
+    // Shortcut: @use "~/my_module/file" resolves to a deep library path
+    "~/my_module": "/src/libraries/custom/longer_path/my_module/",
+    // Absolute path example (no leading /)
+    "abs:": "C:/shared/sass-libs/"
+}
+```
+
+> **💡 Tip:** More specific prefixes (like `~/my_module`) are always checked before shorter ones (like `~`), regardless of order in the object.
+
+> **⚠ Note:** The default value handles common `~` and `pkg:` imports out of the box. If you override this setting, you must include any defaults you still want.
+
+</details>
+
+---
+
 ## liveSassCompile.settings.showAnnouncements
 
 Stop announcements each time a new version is installed.
