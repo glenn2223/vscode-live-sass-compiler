@@ -67,6 +67,7 @@ All notable changes to this project will be documented in this file.
 ### Updated
 
 - `autoprefixer` to `10.4.27` [Changelog][cl:ap]
+- `postcss` to `8.5.8` [Changelog][cl:pc]
 - Various dev dependency updates _(nothing user facing)_
 
 ### Other
