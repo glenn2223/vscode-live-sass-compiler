@@ -371,7 +371,7 @@
     },
     "dependencies": {
         "autoprefixer": "^10.4.27",
-        "postcss": "^8.5.6",
+        "postcss": "^8.5.8",
         "sass-embedded": "^1.97.3"
     },
     "devDependencies": {
@@ -383,14 +383,14 @@
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^12.3.0",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^25.3.2",
+        "@types/node": "^25.3.3",
         "@types/vscode": "1.95",
         "@typescript-eslint/eslint-plugin": "^8.56.1",
         "@typescript-eslint/parser": "^8.56.1",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
         "eslint": "^9.39.3",
-        "globals": "^17.3.0",
+        "globals": "^17.4.0",
         "mocha": "^11.7.5",
         "rollup": "^4.59.0",
         "tslib": "^2.8.1",
