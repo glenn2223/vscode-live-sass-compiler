@@ -284,6 +284,11 @@
                     "default": true,
                     "description": "Set this to `false` if you don't want all Sass files to be compiled when Live Sass Compiler starts watching."
                 },
+                "liveSassCompile.settings.workspacesAreLinked": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "When `false`, partial file changes only compile within their own workspace folder - instead of across all of them.\nDefault is `true` (compiles all included SASS files)"
+                },
                 "liveSassCompile.settings.showOutputWindowOn": {
                     "type": "string",
                     "enum": [

@@ -299,6 +299,15 @@ Defines whether Live Sass should compile all files when it starts watching
 
 ---
 
+## liveSassCompile.settings.workspacesAreLinked
+
+Defines whether a partial file change should trigger recompilation across all workspace folders. Set to `false` if your workspace contains unrelated projects and you only want partials to recompile files within their own workspace folder.
+
+**Type:** `boolean`  
+**Default:** `true`
+
+---
+
 ## liveSassCompile.settings.forceBaseDirectory
 
 > ℹ This setting can vary between workspace folders - [read more][multi-rootfaq]

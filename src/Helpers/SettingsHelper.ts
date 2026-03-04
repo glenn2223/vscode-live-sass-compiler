@@ -3,10 +3,16 @@ import { OutputLevel } from "../Enums/OutputLevel";
 
 export class SettingsHelper {
     private static configSettings(folder?: vscode.WorkspaceFolder) {
-        return vscode.workspace.getConfiguration("liveSassCompile.settings", folder);
+        return vscode.workspace.getConfiguration(
+            "liveSassCompile.settings",
+            folder,
+        );
     }
 
-    static getConfigSettings<T>(val: string, folder?: vscode.WorkspaceFolder): T {
+    static getConfigSettings<T>(
+        val: string,
+        folder?: vscode.WorkspaceFolder,
+    ): T {
         return this.configSettings(folder).get(val) as T;
     }
 
@@ -29,15 +35,30 @@ export class SettingsHelper {
 
             case "Information":
             default: {
-                const oldSetting = this.configSettings().get("showOutputWindow") as boolean | null;
+                const oldSetting = this.configSettings().get(
+                    "showOutputWindow",
+                ) as boolean | null;
 
-                return oldSetting == false ? OutputLevel.Warning : OutputLevel.Information;
+                return oldSetting == false
+                    ? OutputLevel.Warning
+                    : OutputLevel.Information;
             }
         }
     }
 
     static getHideOutputWindowOnSuccess(): boolean {
-        return this.configSettings().get("hideOutputWindowOnSuccess") as boolean ?? false;
+        return (
+            (this.configSettings().get(
+                "hideOutputWindowOnSuccess",
+            ) as boolean) ?? false
+        );
+    }
+
+    static getWorkspacesAreLinked(): boolean {
+        return (
+            (this.configSettings().get("workspacesAreLinked") as boolean) ??
+            true
+        );
     }
 
     static async updateOutputLogLevel(level: OutputLevel): Promise<void> {

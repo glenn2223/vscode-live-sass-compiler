@@ -294,11 +294,10 @@ export class AppModel {
                 folder,
             );
 
-        const pathAliases =
-            SettingsHelper.getConfigSettings<Record<string, string> | null>(
-                "pathAliases",
-                folder,
-            );
+        const pathAliases = SettingsHelper.getConfigSettings<Record<
+            string,
+            string
+        > | null>("pathAliases", folder);
 
         const options = SassHelper.toSassOptions(
             format,
@@ -417,8 +416,14 @@ export class AppModel {
     /**
      * To compile all Sass/scss files
      */
-    private async GenerateAllCssAndMap() {
-        const sassPaths = await this.getSassFiles();
+    private async GenerateAllCssAndMap(
+        workspaceFolder?: vscode.WorkspaceFolder,
+    ) {
+        const sassPaths = await this.getSassFiles(
+            undefined,
+            false,
+            workspaceFolder,
+        );
 
         OutputWindow.Show(
             OutputLevel.Debug,
@@ -830,23 +835,27 @@ export class AppModel {
     private async getSassFiles(
         queryPattern?: string[],
         isDebugging = false,
+        workspaceFolder?: vscode.WorkspaceFolder,
     ): Promise<string[]> {
         OutputWindow.Show(OutputLevel.Trace, "Getting SASS files", [
             `Query pattern: ${queryPattern}`,
             `Can be overwritten: ${queryPattern == undefined}`,
+            `Workspace folder filter: ${workspaceFolder?.name ?? "all"}`,
         ]);
 
         const fileList: string[] = [];
 
-        if (
-            vscode.workspace.workspaceFolders &&
-            vscode.workspace.workspaceFolders.length > 0
-        ) {
+        // Use specific folder if provided, otherwise all workspace folders
+        const folders = workspaceFolder
+            ? [workspaceFolder]
+            : vscode.workspace.workspaceFolders;
+
+        if (folders && folders.length > 0) {
             const results = await Promise.all(
-                vscode.workspace.workspaceFolders.map(async (folder, index) => {
+                folders.map(async (folder, index) => {
                     OutputWindow.Show(
                         OutputLevel.Trace,
-                        `Checking folder ${index + 1} of ${vscode.workspace.workspaceFolders!.length}`,
+                        `Checking folder ${index + 1} of ${folders.length}`,
                         [`Folder: ${folder.name}`],
                     );
 
@@ -1455,7 +1464,7 @@ export class AppModel {
                 return;
 
             case SassConfirmationType.PartialFile:
-                await this.handlePartialFileChange(uri);
+                await this.handlePartialFileChange(uri, workspaceFolder);
                 break;
 
             case SassConfirmationType.SassFile:
@@ -1467,7 +1476,10 @@ export class AppModel {
         }
     }
 
-    private async handlePartialFileChange(uri: vscode.Uri): Promise<void> {
+    private async handlePartialFileChange(
+        uri: vscode.Uri,
+        workspaceFolder?: vscode.WorkspaceFolder,
+    ): Promise<void> {
         try {
             StatusBarUi.working();
             OutputWindow.Show(
@@ -1476,8 +1488,22 @@ export class AppModel {
                 [path.basename(uri.fsPath)],
             );
 
-            // Partial file changes trigger compilation of all files
-            await this.GenerateAllCssAndMap();
+            // When workspaces are linked (default), compile all files across all folders.
+            // When unlinked, only compile files in the workspace folder that owns the partial.
+            if (SettingsHelper.getWorkspacesAreLinked()) {
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "Workspaces are linked - compiling all workspace folders",
+                );
+                await this.GenerateAllCssAndMap();
+            } else {
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "Workspaces are not linked - compiling only the owning workspace folder",
+                    [workspaceFolder?.name ?? "no folder"],
+                );
+                await this.GenerateAllCssAndMap(workspaceFolder);
+            }
         } catch (err) {
             OutputWindow.Show(
                 OutputLevel.Error,
