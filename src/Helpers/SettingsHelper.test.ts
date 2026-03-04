@@ -136,4 +136,26 @@ suite("SettingsHelper Tests", function () {
             );
         });
     });
+
+    suite("getWorkspacesAreLinked", function () {
+        teardown(async () => {
+            await config().update("workspacesAreLinked", undefined);
+        });
+
+        test("Default value is true", () => {
+            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), true);
+        });
+
+        test("Returns false when disabled", async () => {
+            await config().update("workspacesAreLinked", false);
+
+            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), false);
+        });
+
+        test("Returns true when explicitly enabled", async () => {
+            await config().update("workspacesAreLinked", true);
+
+            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), true);
+        });
+    });
 });

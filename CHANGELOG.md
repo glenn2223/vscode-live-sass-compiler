@@ -50,6 +50,8 @@ All notable changes to this project will be documented in this file.
 - New `liveSassCompile.settings.pathAliases` setting: a configurable map of import path prefixes to replacement paths.  
   This expands on the `~` → `node_modules` resolution, offering flexible, user-configurable system. Prefixes are matched longest-first, so specific aliases like `~/my_module` take priority over `~`.
 - The above change also means `pkg:` is supported, resolving to the `node_modules` folder by default
+- New `workspacesAreLinked` setting. Closes [#185](https://github.com/glenn2223/vscode-live-sass-compiler/discussions/185)  
+  When `false`, partial file changes only compile within their own workspace folder - instead of across all of them. Default is `true`
 
 ### Changed
 
