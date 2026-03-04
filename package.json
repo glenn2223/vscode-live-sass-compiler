@@ -287,7 +287,7 @@
                 "liveSassCompile.settings.workspacesAreLinked": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Set to `false` if partial file changes should only trigger recompilation within their own workspace folder, not across all workspace folders."
+                    "description": "When `false`, partial file changes only compile within their own workspace folder - instead of across all of them.\nDefault is `true` (compiles all included SASS files)"
                 },
                 "liveSassCompile.settings.showOutputWindowOn": {
                     "type": "string",
