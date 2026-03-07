@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import picomatch from "picomatch";
 
 import { Settings } from "../VsCode/Settings";
 import { OutputWindow } from "../VsCode/OutputWindow";
@@ -172,8 +173,13 @@ export class SassFileClassifier {
     }
 
     /**
-     * Tests if a file matches any of the given glob patterns using VS Code's built-in pattern matching.
-     * Paths and patterns are normalized to lowercase for case-insensitive matching.
+     * Tests if a file matches any of the given glob patterns using picomatch.
+     * Supports full picomatch syntax: globs, extglobs, character classes, brace
+     * expansion, and negation patterns. Paths and patterns are normalized to
+     * lowercase for case-insensitive matching.
+     *
+     * When a workspace folder is provided the file path is made relative to the
+     * workspace root before matching, so directory-based patterns work correctly.
      */
     static matchesGlobPattern(
         patterns: string[],
@@ -184,41 +190,23 @@ export class SassFileClassifier {
             return false;
         }
 
-        // Normalize patterns to lowercase for case-insensitive matching
-        const normalizedPatterns = patterns.map((p) => p.toLowerCase());
+        const filePath =
+            typeof fileOrPath === "string" ? fileOrPath : fileOrPath.uri.fsPath;
 
-        // Build the document selector with all patterns (lowercase)
-        const selector: vscode.DocumentSelector = normalizedPatterns.map(
-            (pattern) => ({
-                pattern: workspaceFolder
-                    ? new vscode.RelativePattern(workspaceFolder, pattern)
-                    : pattern,
-            }),
+        // Normalize patterns to forward slashes and lowercase for cross-platform matching
+        const normalizedPatterns = patterns.map((p) =>
+            p.replace(/\\/g, "/").toLowerCase(),
         );
 
-        // Get or create the document-like object for matching
-        let document:
-            | vscode.TextDocument
-            | { uri: vscode.Uri; languageId: string };
+        // When a workspace is known, match against the relative path so that
+        // patterns like `**/node_modules/**` and `.vscode/**` work correctly.
+        const matchPath = workspaceFolder
+            ? path
+                  .relative(workspaceFolder.uri.fsPath, filePath)
+                  .replace(/\\/g, "/")
+                  .toLowerCase()
+            : filePath.replace(/\\/g, "/").toLowerCase();
 
-        if (typeof fileOrPath === "string") {
-            // Create a minimal document-like object from the file path (lowercase for matching)
-            const uri = vscode.Uri.file(fileOrPath.toLowerCase());
-            const ext = path.extname(fileOrPath).toLowerCase();
-            document = {
-                uri,
-                languageId: ext === ".sass" ? "sass" : "scss",
-            };
-        } else {
-            // For TextDocument, create a lowercase URI version for matching
-            document = {
-                uri: vscode.Uri.file(fileOrPath.uri.fsPath.toLowerCase()),
-                languageId: fileOrPath.languageId,
-            };
-        }
-
-        // Use VS Code's pattern matching - returns score > 0 if matches
-        // @ts-expect-error - VS Code's match function accepts minimal document objects with uri and languageId
-        return vscode.languages.match(selector, document) != 0;
+        return picomatch.isMatch(matchPath, normalizedPatterns, { dot: true });
     }
 }
