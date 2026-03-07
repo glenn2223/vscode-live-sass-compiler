@@ -15,7 +15,7 @@ export async function activate(
     try {
         OutputWindow.Show(
             OutputLevel.Trace,
-            '"live-sass-compiler" is now activate',
+            '"live-sass-compiler" is now activated',
         );
 
         const appModel = new AppModel(context.workspaceState);
