@@ -11,14 +11,14 @@ export async function autoprefix(
     map: string | undefined,
     savePath: string,
     browsers: string | Array<string> | true,
-    generateMap: boolean
+    generateMap: boolean,
 ): Promise<{ css: string; map: string | null }> {
     OutputWindow.Show(OutputLevel.Trace, "Preparing autoprefixer");
 
     const prefixer = postcss(
         autoprefixer({
             overrideBrowserslist: browsers === true ? undefined : browsers,
-        })
+        }),
     );
 
     // TODO: REMOVE - when autoprefixer can stop caching the browsers
@@ -30,7 +30,7 @@ export async function autoprefix(
         OutputWindow.Show(
             OutputLevel.Trace,
             "Changing BROWSERSLIST_DISABLE_CACHE setting",
-            [`Was: ${oldBrowserlistCache ?? "UNDEFINED"}`, "Now: 1"]
+            [`Was: ${oldBrowserlistCache ?? "UNDEFINED"}`, "Now: 1"],
         );
     }
 
@@ -52,7 +52,8 @@ export async function autoprefix(
 
             if (warn.node.source?.input.file) {
                 body.push(
-                    warn.node.source.input.file + `:${warn.line}:${warn.column}`
+                    warn.node.source.input.file +
+                        `:${warn.line}:${warn.column}`,
                 );
             }
 
@@ -63,7 +64,7 @@ export async function autoprefix(
                     ? OutputLevel.Warning
                     : OutputLevel.Error,
                 `Autoprefix ${warn.type || "error"}`,
-                body
+                body,
             );
         });
 
@@ -81,7 +82,7 @@ export async function autoprefix(
                 OutputLevel.Trace,
                 `Restored BROWSERSLIST_DISABLE_CACHE to: ${
                     oldBrowserlistCache ?? "UNDEFINED"
-                }`
+                }`,
             );
         }
     }

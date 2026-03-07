@@ -4,5 +4,5 @@ export enum OutputLevel {
     Information = 3,
     Warning = 4,
     Error = 5,
-    Critical = 6
+    Critical = 6,
 }

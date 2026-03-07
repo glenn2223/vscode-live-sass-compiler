@@ -2,14 +2,14 @@ import * as assert from "assert";
 import { Logger } from "sass-embedded";
 import path from "path";
 import * as vscode from "vscode";
-import { SassHelper } from "./SassHelper";
+import { SassCompiler } from "./SassCompiler";
 
 const loggerProperty: Logger = {
     warn: (message, options) => {
         console.warn(
             "Warning:",
             [message].concat(
-                SassHelper.format(
+                SassCompiler.format(
                     options.span,
                     options.stack,
                     options.deprecation,
@@ -20,12 +20,12 @@ const loggerProperty: Logger = {
     debug: (message, options) => {
         console.debug(
             "Debug info:",
-            [message].concat(SassHelper.format(options.span)),
+            [message].concat(SassCompiler.format(options.span)),
         );
     },
 };
 
-suite("SassHelper Tests", function () {
+suite("SassCompiler Tests", function () {
     const filePath = path.resolve(
         __dirname,
         "../../src/test/sample/css/sample.scss",
@@ -34,10 +34,14 @@ suite("SassHelper Tests", function () {
     test("Simple compressed test", async () => {
         const input = filePath,
             expected = ".Sample{color:#000}",
-            actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
-                style: "compressed",
-                logger: loggerProperty,
-            });
+            actualObj = await SassCompiler.compileOneAsync(
+                input,
+                "input.scss",
+                {
+                    style: "compressed",
+                    logger: loggerProperty,
+                },
+            );
 
         if (actualObj.errorString) {
             console.log("Compile error:", actualObj.errorString);
@@ -53,10 +57,14 @@ suite("SassHelper Tests", function () {
             expected = `.Sample {
   color: #000;
 }`,
-            actualObj = await SassHelper.compileOneAsync(input, "input.scss", {
-                style: "expanded",
-                logger: loggerProperty,
-            });
+            actualObj = await SassCompiler.compileOneAsync(
+                input,
+                "input.scss",
+                {
+                    style: "expanded",
+                    logger: loggerProperty,
+                },
+            );
 
         if (actualObj.errorString) {
             console.log("Compile error:", actualObj.errorString);
@@ -68,17 +76,14 @@ suite("SassHelper Tests", function () {
     });
 });
 
-suite("SassHelper toSassOptions Tests", function () {
+suite("SassCompiler toSassOptions Tests", function () {
     const dummyFormat = {
         format: "compressed" as const,
         extensionName: ".css",
-        linefeed: "lf" as const,
-        indentType: "space" as const,
-        indentWidth: 2,
     };
 
     test("toSassOptions without pathAliases returns importers", () => {
-        const options = SassHelper.toSassOptions(dummyFormat);
+        const options = SassCompiler.toSassOptions(dummyFormat);
 
         assert.ok(options.importers, "importers should be defined");
         assert.equal(
@@ -92,7 +97,7 @@ suite("SassHelper toSassOptions Tests", function () {
     });
 
     test("toSassOptions with null pathAliases returns importers", () => {
-        const options = SassHelper.toSassOptions(dummyFormat, false, null);
+        const options = SassCompiler.toSassOptions(dummyFormat, false, null);
 
         assert.ok(options.importers, "importers should be defined");
         assert.equal(
@@ -104,7 +109,7 @@ suite("SassHelper toSassOptions Tests", function () {
 
     test("toSassOptions with pathAliases returns importers", () => {
         const aliases = { "~": "/node_modules/", "pkg:": "/node_modules/" };
-        const options = SassHelper.toSassOptions(dummyFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(dummyFormat, false, aliases);
 
         assert.ok(options.importers, "importers should be defined");
         assert.equal(
@@ -115,30 +120,31 @@ suite("SassHelper toSassOptions Tests", function () {
     });
 
     test("toSassOptions passes sourceMapIncludeSources", () => {
-        const options = SassHelper.toSassOptions(dummyFormat, true);
+        const options = SassCompiler.toSassOptions(dummyFormat, true);
 
         assert.equal(options.sourceMapIncludeSources, true);
     });
 });
 
-suite("SassHelper pathAliases compilation Tests", function () {
+suite("SassCompiler pathAliases compilation Tests", function () {
     const sampleDir = path.resolve(__dirname, "../../src/test/sample");
     const libsDir = path.resolve(sampleDir, "libs");
     const nodeModulesDir = path.resolve(sampleDir, "node_modules");
     const compileFormat = {
         format: "compressed" as const,
         extensionName: ".css",
-        linefeed: "lf" as const,
-        indentType: "space" as const,
-        indentWidth: 2,
     };
 
     test("Alias resolves @use with prefix to correct path", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
         const aliases = { mylib: libsDir };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -156,9 +162,13 @@ suite("SassHelper pathAliases compilation Tests", function () {
     test("Alias resolves nested @use with prefix", async () => {
         const input = path.resolve(sampleDir, "alias_test_mixin.scss");
         const aliases = { mylib: libsDir };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -174,17 +184,17 @@ suite("SassHelper pathAliases compilation Tests", function () {
 
     test("Longest prefix wins when multiple aliases match", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
-        // "mylib/colors" is longer and should match before "mylib"
-        // We point "mylib/colors" directly at the colors dir
-        // and "mylib" at a non-existent dir — if longest-first works,
-        // "mylib/colors" matches and compilation succeeds
         const aliases = {
             "mylib/colors": path.resolve(libsDir, "colors"),
             mylib: path.resolve(sampleDir, "nonexistent"),
         };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -200,11 +210,14 @@ suite("SassHelper pathAliases compilation Tests", function () {
 
     test("Unmatched prefix returns null and compilation fails", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
-        // No alias matches "mylib" — compilation should fail
         const aliases = { "other:": libsDir };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -217,9 +230,13 @@ suite("SassHelper pathAliases compilation Tests", function () {
     test("Empty pathAliases does not resolve aliases", async () => {
         const input = path.resolve(sampleDir, "alias_test.scss");
         const aliases = {};
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -236,9 +253,13 @@ suite("SassHelper pathAliases compilation Tests", function () {
 
         const input = path.resolve(sampleDir, "pkg_alias_test.scss");
         const aliases = { "pkg:": "/node_modules/" };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,
@@ -252,9 +273,13 @@ suite("SassHelper pathAliases compilation Tests", function () {
     test("pkg: alias resolves with absolute replacement path", async () => {
         const input = path.resolve(sampleDir, "pkg_alias_test.scss");
         const aliases = { "pkg:": nodeModulesDir };
-        const options = SassHelper.toSassOptions(compileFormat, false, aliases);
+        const options = SassCompiler.toSassOptions(
+            compileFormat,
+            false,
+            aliases,
+        );
 
-        const result = await SassHelper.compileOneAsync(
+        const result = await SassCompiler.compileOneAsync(
             input,
             "output.css",
             options,

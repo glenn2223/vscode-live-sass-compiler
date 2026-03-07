@@ -1,10 +1,5 @@
-import {
-    env,
-    extensions,
-    Memento, Uri,
-    version
-} from "vscode";
-import { LogEvent } from "./LogEvent";
+import { env, extensions, Memento, Uri, version } from "vscode";
+import { LogEvent, createLogEvent } from "./LogEvent";
 import { OutputWindow } from "./OutputWindow";
 import { WindowPopout } from "./WindowPopout";
 import { OutputLevel } from "../Enums/OutputLevel";
@@ -27,7 +22,7 @@ export class ErrorLogger {
 
     async LogIssueWithAlert(
         Message: string,
-        DetailedLogInfo: unknown
+        DetailedLogInfo: unknown,
     ): Promise<void> {
         OutputWindow.Show(OutputLevel.Trace, "Logging issue", [
             `Message: ${Message}`,
@@ -35,7 +30,7 @@ export class ErrorLogger {
 
         WindowPopout.Alert(`Live Sass Compiler: ${Message}`);
 
-        this.logs.push(new LogEvent(DetailedLogInfo));
+        this.logs.push(createLogEvent(DetailedLogInfo));
 
         await this.SaveLogs();
     }
@@ -70,8 +65,10 @@ export class ErrorLogger {
                 `| VS Code | v${version} |`,
                 `| Platform | ${process.platform} ${process.arch} |`,
                 `| Node | ${process.versions.node} (${process.versions.modules}) |`,
-                `| Live Sass | ${extensions.getExtension("glenn2223.live-sass")!.packageJSON
-                    .version} |`,
+                `| Live Sass | ${
+                    extensions.getExtension("glenn2223.live-sass")!.packageJSON
+                        .version
+                } |`,
                 `<details><summary>Installed Extensions</summary><div>`,
                 extensions.all
                     .filter((ext) => ext.isActive)
@@ -79,9 +76,11 @@ export class ErrorLogger {
                     .join("<br/>"),
                 "</div></details>",
                 "",
-                `**LOG**: ${lastError === null
-                    ? ""
-                    : lastError.createdAt.toISOString().replace("T", " ")}`,
+                `**LOG**: ${
+                    lastError === null
+                        ? ""
+                        : lastError.createdAt.toISOString().replace("T", " ")
+                }`,
                 "```JSON",
                 lastError === null
                     ? '{\n"NO LOG": "PLEASE SPECIFY YOUR ISSUE BELOW"\n}'
@@ -89,7 +88,7 @@ export class ErrorLogger {
                 "```",
                 "=======================",
                 "<!-- You can add any supporting information below here -->\n",
-            ].join("\n")
+            ].join("\n"),
         );
 
         OutputWindow.Show(OutputLevel.Trace, "Ready to create issue", [
@@ -100,9 +99,9 @@ export class ErrorLogger {
         await env.openExternal(
             Uri.parse(
                 "https://github.com/glenn2223/vscode-live-sass-compiler/issues/new" +
-                `?title=${lastError === null ? "Issue+Report" : "Unexpected+Error"}%3A+SUMMARY+HERE` +
-                "&body=%3C%21--+Highlight+this+line+and+then+paste+(Ctrl+%2B+V+%7C+Command+%2B+V)+--%3E"
-            )
+                    `?title=${lastError === null ? "Issue+Report" : "Unexpected+Error"}%3A+SUMMARY+HERE` +
+                    "&body=%3C%21--+Highlight+this+line+and+then+paste+(Ctrl+%2B+V+%7C+Command+%2B+V)+--%3E",
+            ),
         );
 
         OutputWindow.Show(
@@ -111,7 +110,7 @@ export class ErrorLogger {
             [
                 // TODO: If required - setup command for outputting all logs
                 //'Not the right error message? Run `outputAllLogs` to see all recorded errors'
-            ]
+            ],
         );
     }
 
@@ -124,7 +123,7 @@ export class ErrorLogger {
     static PrepErrorForLogging(Err: Error): unknown {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Converting error to a usable object"
+            "Converting error to a usable object",
         );
 
         return JSON.parse(JSON.stringify(Err, Object.getOwnPropertyNames(Err)));

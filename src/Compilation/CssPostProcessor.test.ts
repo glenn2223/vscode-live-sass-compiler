@@ -1,7 +1,7 @@
 import * as assert from "assert";
-import { autoprefix } from "./Autoprefix";
+import { autoprefix } from "./CssPostProcessor";
 
-suite("Autocomplete Tests", function () {
+suite("CssPostProcessor Tests", function () {
     test("Simple test", async () => {
         const input = ".test{display:flex}",
             expected = ".test{display:-ms-flexbox;display:flex}",
@@ -10,7 +10,7 @@ suite("Autocomplete Tests", function () {
                 undefined,
                 "input.scss",
                 ["IE 10"],
-                false
+                false,
             );
 
         assert.equal(actualObj.css, expected);
@@ -24,7 +24,7 @@ suite("Autocomplete Tests", function () {
                 undefined,
                 "input.scss",
                 true,
-                false
+                false,
             );
 
         assert.equal(actualObj.css, expected);
@@ -45,7 +45,7 @@ a {
                 undefined,
                 "input.scss",
                 true,
-                false
+                false,
             );
 
         assert.equal(actualObj.css, expected);
@@ -59,11 +59,11 @@ a {
                     undefined,
                     "input.scss",
                     ["IE10"],
-                    false
+                    false,
                 ),
             {
                 message: /IE10/,
-            }
+            },
         );
     });
 });

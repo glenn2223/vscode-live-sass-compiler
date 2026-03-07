@@ -2,5 +2,5 @@
 export enum SassConfirmationType {
     SassFile,
     PartialFile,
-    NotSass
+    NotSass,
 }

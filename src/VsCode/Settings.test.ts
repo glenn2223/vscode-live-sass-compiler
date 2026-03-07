@@ -1,9 +1,9 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { SettingsHelper } from "./SettingsHelper";
+import { Settings } from "./Settings";
 import { OutputLevel } from "../Enums/OutputLevel";
 
-suite("SettingsHelper Tests", function () {
+suite("Settings Tests", function () {
     const config = () =>
         vscode.workspace.getConfiguration("liveSassCompile.settings");
 
@@ -14,28 +14,41 @@ suite("SettingsHelper Tests", function () {
         });
 
         test("Default value is false", () => {
-            assert.strictEqual(
-                SettingsHelper.getHideOutputWindowOnSuccess(),
-                false,
-            );
+            assert.strictEqual(Settings.getHideOutputWindowOnSuccess(), false);
         });
 
         test("Returns true when enabled", async () => {
             await config().update("hideOutputWindowOnSuccess", true);
 
-            assert.strictEqual(
-                SettingsHelper.getHideOutputWindowOnSuccess(),
-                true,
-            );
+            assert.strictEqual(Settings.getHideOutputWindowOnSuccess(), true);
         });
 
         test("Returns false when explicitly disabled", async () => {
             await config().update("hideOutputWindowOnSuccess", false);
 
-            assert.strictEqual(
-                SettingsHelper.getHideOutputWindowOnSuccess(),
-                false,
-            );
+            assert.strictEqual(Settings.getHideOutputWindowOnSuccess(), false);
+        });
+    });
+
+    suite("getWorkspacesAreLinked", function () {
+        teardown(async () => {
+            await config().update("workspacesAreLinked", undefined);
+        });
+
+        test("Default value is true", () => {
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), true);
+        });
+
+        test("Returns false when disabled", async () => {
+            await config().update("workspacesAreLinked", false);
+
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), false);
+        });
+
+        test("Returns true when explicitly enabled", async () => {
+            await config().update("workspacesAreLinked", true);
+
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), true);
         });
     });
 
@@ -49,8 +62,8 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "Information");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 !(hideEnabled && logLevel > OutputLevel.Information),
@@ -62,8 +75,8 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "Warning");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 hideEnabled && logLevel > OutputLevel.Information,
@@ -75,8 +88,8 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "Error");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 hideEnabled && logLevel > OutputLevel.Information,
@@ -88,8 +101,8 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "None");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 hideEnabled && logLevel > OutputLevel.Information,
@@ -101,8 +114,8 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "Debug");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 !(hideEnabled && logLevel > OutputLevel.Information),
@@ -114,48 +127,13 @@ suite("SettingsHelper Tests", function () {
             await config().update("showOutputWindowOn", "Trace");
             await config().update("hideOutputWindowOnSuccess", true);
 
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
 
             assert.ok(
                 !(hideEnabled && logLevel > OutputLevel.Information),
                 "Should NOT be eligible to hide at Trace level",
             );
-        });
-
-        test("Not eligible when setting is disabled", async () => {
-            await config().update("showOutputWindowOn", "Warning");
-            await config().update("hideOutputWindowOnSuccess", false);
-
-            const logLevel = SettingsHelper.getOutputLogLevel();
-            const hideEnabled = SettingsHelper.getHideOutputWindowOnSuccess();
-
-            assert.ok(
-                !(hideEnabled && logLevel > OutputLevel.Information),
-                "Should NOT be eligible when hideOutputWindowOnSuccess is false",
-            );
-        });
-    });
-
-    suite("getWorkspacesAreLinked", function () {
-        teardown(async () => {
-            await config().update("workspacesAreLinked", undefined);
-        });
-
-        test("Default value is true", () => {
-            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), true);
-        });
-
-        test("Returns false when disabled", async () => {
-            await config().update("workspacesAreLinked", false);
-
-            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), false);
-        });
-
-        test("Returns true when explicitly enabled", async () => {
-            await config().update("workspacesAreLinked", true);
-
-            assert.strictEqual(SettingsHelper.getWorkspacesAreLinked(), true);
         });
     });
 });

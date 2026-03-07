@@ -9,7 +9,7 @@ export class StatusBarUi {
         if (!StatusBarUi._statusBarItem) {
             StatusBarUi._statusBarItem = vscode.window.createStatusBarItem(
                 vscode.StatusBarAlignment.Right,
-                200
+                200,
             );
             this.statusBarItem.show();
         }
@@ -20,7 +20,7 @@ export class StatusBarUi {
     static init(watchOnLaunch: boolean): void {
         StatusBarUi.customMessage(
             "Starting...",
-            "Initializing... switching state in 1 second"
+            "Initializing... switching state in 1 second",
         );
 
         setTimeout(
@@ -28,14 +28,14 @@ export class StatusBarUi {
                 watchOnLaunch
                     ? StatusBarUi.watching()
                     : StatusBarUi.notWatching(),
-            1000
+            1000,
         );
     }
 
     static watching(): void {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Changing status bar to: Watching"
+            "Changing status bar to: Watching",
         );
 
         StatusBarUi.statusBarItem.text = `$(telescope) Watching...`;
@@ -48,7 +48,7 @@ export class StatusBarUi {
     static notWatching(): void {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Changing status bar to: Not watching (or Watch SASS)"
+            "Changing status bar to: Not watching (or Watch SASS)",
         );
 
         StatusBarUi.statusBarItem.text = `$(eye) Watch Sass`;
@@ -61,7 +61,7 @@ export class StatusBarUi {
     static working(workingMsg = "Working on it..."): void {
         this.customMessage(
             workingMsg,
-            "In case it takes a long time, show output window and report."
+            "In case it takes a long time, show output window and report.",
         );
     }
 
@@ -69,11 +69,11 @@ export class StatusBarUi {
         text: string,
         tooltip: string,
         iconName = "pulse",
-        command: string | undefined = undefined
+        command: string | undefined = undefined,
     ): void {
         OutputWindow.Show(
             OutputLevel.Trace,
-            `Changing status bar to: "${text}"`
+            `Changing status bar to: "${text}"`,
         );
 
         let icon = "";
@@ -91,7 +91,7 @@ export class StatusBarUi {
         OutputWindow.Show(
             OutputLevel.Trace,
             "Changing status bar to: Success",
-            ["Registered timeout to switch state back"]
+            ["Registered timeout to switch state back"],
         );
 
         StatusBarUi.statusBarItem.text = `$(check) Success`;
@@ -101,7 +101,7 @@ export class StatusBarUi {
         setTimeout(function () {
             OutputWindow.Show(
                 OutputLevel.Trace,
-                "Firing timeout function to switch back"
+                "Firing timeout function to switch back",
             );
 
             StatusBarUi.statusBarItem.color = "inherit";
@@ -118,7 +118,7 @@ export class StatusBarUi {
             OutputLevel.Trace,
             "Changing status bar to: Error",
             null,
-            false
+            false,
         );
 
         StatusBarUi.statusBarItem.text = `$(x) Error`;
@@ -130,13 +130,13 @@ export class StatusBarUi {
                 OutputLevel.Trace,
                 "Registered timeout to switch state back",
                 null,
-                false
+                false,
             );
 
             setTimeout(function () {
                 OutputWindow.Show(
                     OutputLevel.Trace,
-                    "Firing timeout function to switch back"
+                    "Firing timeout function to switch back",
                 );
 
                 StatusBarUi.statusBarItem.color = "inherit";
@@ -154,7 +154,7 @@ export class StatusBarUi {
 
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Disposing Live SASS status bar item"
+            "Disposing Live SASS status bar item",
         );
     }
 }

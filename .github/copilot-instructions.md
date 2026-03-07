@@ -1,24 +1,29 @@
 # Live Sass Compiler
+
 Live Sass Compiler is a VS Code extension for compiling SASS/SCSS files to CSS in real-time. It's written in TypeScript and uses sass-embedded for fast compilation.
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
+When making changes that affect the repository structure, key files, build process, or development workflow, update this file to keep it accurate and in sync with the codebase.
+
 ## Working Effectively
+
 - Bootstrap, build, and test the repository:
-  - Ensure you have Node.js 20.x: `node --version` (should show v20.x.x)
-  - `npm ci` -- takes ~14 seconds. Installs exact dependencies from package-lock.json
-  - `npm run lint` -- takes ~1.5 seconds. Runs ESLint on TypeScript source files
-  - `npm run rollup` -- takes ~15 seconds. Builds the extension bundle. NEVER CANCEL - Set timeout to 60+ seconds
-  - `npm run vscode:prepublish` -- takes ~16 seconds. Full build pipeline (clean + lint + rollup). NEVER CANCEL - Set timeout to 60+ seconds
+    - Ensure you have Node.js 20.x: `node --version` (should show v20.x.x)
+    - `npm ci` -- takes ~14 seconds. Installs exact dependencies from package-lock.json
+    - `npm run lint` -- takes ~1.5 seconds. Runs ESLint on TypeScript source files
+    - `npm run rollup` -- takes ~15 seconds. Builds the extension bundle. NEVER CANCEL - Set timeout to 60+ seconds
+    - `npm run vscode:prepublish` -- takes ~16 seconds. Full build pipeline (clean + lint + rollup). NEVER CANCEL - Set timeout to 60+ seconds
 - Test the build without VS Code integration:
-  - `npm run pretest` -- takes ~21 seconds. Compiles tests and builds test version. NEVER CANCEL - Set timeout to 60+ seconds
-  - Full VS Code integration tests require downloading VS Code and may fail in restricted environments
+    - `npm run pretest` -- takes ~21 seconds. Compiles tests and builds test version. NEVER CANCEL - Set timeout to 60+ seconds
+    - Full VS Code integration tests require downloading VS Code and may fail in restricted environments
 - Validate SASS compilation functionality:
-  - Test sass-embedded directly: `npx sass-embedded input.scss output.css`
-  - Create test SASS: `echo '$color: #333; body { color: $color; }' > test.scss`
-  - Compile it: `npx sass-embedded test.scss test.css && cat test.css`
+    - Test sass-embedded directly: `npx sass-embedded input.scss output.css`
+    - Create test SASS: `echo '$color: #333; body { color: $color; }' > test.scss`
+    - Compile it: `npx sass-embedded test.scss test.css && cat test.css`
 
 ## Key Build Commands and Timing
+
 - **CRITICAL**: All build commands can take 15+ seconds. NEVER CANCEL builds. Always set timeouts to 60+ minutes for any rollup/build command.
 - `npm ci`: ~14 seconds - Clean dependency install
 - `npm run lint`: ~1.5 seconds - ESLint check
@@ -29,32 +34,56 @@ Always reference these instructions first and fallback to search or bash command
 - `npm test`: Requires VS Code download, may fail in restricted environments
 
 ## Validation
+
 - Always manually validate SASS compilation using sass-embedded directly when making changes to compilation logic.
 - ALWAYS run through the complete build pipeline after making changes: `npm run vscode:prepublish`
 - You cannot fully test the VS Code extension UI in headless environments, but you can validate the core compilation functionality.
 - Always run `npm run lint` before you are done or the CI (.github/workflows/test.yml) will fail.
-- **Extension Testing Scenarios**: 
-  1. Create a .scss file with variables and nesting
-  2. Test compilation with `npx sass-embedded input.scss output.css`
-  3. Verify CSS output includes compiled variables and flattened nesting
-  4. Test autoprefixer functionality if modified
+- **Extension Testing Scenarios**:
+    1. Create a .scss file with variables and nesting
+    2. Test compilation with `npx sass-embedded input.scss output.css`
+    3. Verify CSS output includes compiled variables and flattened nesting
+    4. Test autoprefixer functionality if modified
 
 ## Common Tasks
 
 ### Repository Structure
+
 ```
 /
 ├── .github/workflows/     # CI/CD pipelines (test.yml, publish.yml)
 ├── .vscode/              # VS Code config (launch.json, tasks.json, settings.json)
 ├── docs/                 # Documentation (faqs.md, settings.md)
 ├── src/                  # Source code
-│   ├── extension.ts      # Main extension entry point
-│   ├── appModel.ts       # Core application logic
-│   ├── Helpers/          # Utility classes (SassHelper, FileHelper, SettingsHelper)
-│   ├── VsCode/           # VS Code integration (OutputWindow, StatusbarUi)
-│   ├── Interfaces/       # TypeScript interfaces
-│   ├── Enums/            # TypeScript enums
-│   └── test/             # Test files and sample workspace
+│   ├── extension.ts      # Activation entry point (delegates to CommandRegistry)
+│   ├── appModel.ts       # Thin lifecycle coordinator (~250 lines)
+│   ├── Files/            # File system, path resolution, SASS file discovery
+│   │   ├── IFileResolver.ts        # Interface for file write results
+│   │   ├── FileWriter.ts           # Filesystem write operations
+│   │   ├── SassPathResolver.ts     # Output path generation & normalisation
+│   │   ├── WorkspacePathContext.ts # Workspace base path & forceBaseDirectory
+│   │   ├── SassFileClassifier.ts   # Partial / excluded file classification
+│   │   └── SassFileCollector.ts    # Finds qualifying SASS files per folder
+│   ├── Compilation/      # SASS compilation and CSS post-processing
+│   │   ├── SassCompiler.ts          # sass-embedded adapter (was SassHelper)
+│   │   ├── CssPostProcessor.ts      # autoprefixer/postcss adapter (was Autoprefix)
+│   │   ├── SassCompilationService.ts # Single-file compilation orchestration
+│   │   └── SassBatchCompiler.ts     # Batch compilation across workspaces
+│   ├── VsCode/           # VS Code integration layer
+│   │   ├── Settings.ts          # VS Code configuration wrapper (was SettingsHelper)
+│   │   ├── OutputWindow.ts      # Extension output logging
+│   │   ├── StatusbarUi.ts       # Status bar integration
+│   │   ├── CompilationUi.ts     # UI state for compilation results
+│   │   ├── WorkspaceWatcher.ts  # FileSystemWatcher lifecycle
+│   │   ├── DebugReporter.ts     # Debug command output assembly
+│   │   ├── Announcement.ts      # Version-based announcement system
+│   │   ├── CommandRegistry.ts   # Command registration (extracted from extension.ts)
+│   │   ├── ErrorLogger.ts       # Error logging utilities
+│   │   ├── LogEvent.ts          # Log event interface
+│   │   └── WindowPopout.ts      # Information message popouts
+│   ├── Interfaces/       # TypeScript interfaces (IFormat, ISassCompileResult)
+│   ├── Enums/            # TypeScript enums (OutputLevel, SassConfirmationType)
+│   └── test/             # Test runner, sample workspace, and test files
 ├── out/                  # Build output (generated)
 ├── package.json          # Dependencies and npm scripts
 ├── rollup.config.ts      # Build configuration
@@ -63,16 +92,25 @@ Always reference these instructions first and fallback to search or bash command
 ```
 
 ### Key Source Files to Know
-- `src/extension.ts`: Main extension activation and command registration
-- `src/appModel.ts`: Core SASS compilation and file watching logic
-- `src/Helpers/SassHelper.ts`: SASS compilation wrapper using sass-embedded
-- `src/Helpers/FileHelper.ts`: File system operations and glob pattern matching
-- `src/VsCode/StatusbarUi.ts`: VS Code status bar integration
+
+- `src/extension.ts`: Activation entry point — creates AppModel, delegates command registration to `CommandRegistry`
+- `src/appModel.ts`: Thin lifecycle coordinator — watcher setup, change routing, dispose. Delegates all real work.
+- `src/Files/SassFileCollector.ts`: Finds qualifying SASS files using fdir + picomatch
+- `src/Files/SassFileClassifier.ts`: Determines if a file is a partial, excluded, or compilable SASS file
+- `src/Files/SassPathResolver.ts`: Generates output CSS/map paths from SASS input paths
+- `src/Compilation/SassCompiler.ts`: sass-embedded adapter — options building and single-file compilation
+- `src/Compilation/SassBatchCompiler.ts`: Batch compilation across all workspace folders
+- `src/Compilation/SassCompilationService.ts`: Orchestrates single-file compile → autoprefix → write
+- `src/VsCode/Settings.ts`: Reads `liveSassCompile.settings.*` VS Code configuration
+- `src/VsCode/CompilationUi.ts`: Manages status bar and output window state during compilation
+- `src/VsCode/CommandRegistry.ts`: Registers all extension commands with VS Code
 - `src/VsCode/OutputWindow.ts`: Extension output logging
+- `src/VsCode/StatusbarUi.ts`: VS Code status bar integration
 - `rollup.config.ts`: Build bundling configuration
 - `package.json`: Commands, dependencies, and VS Code extension manifest
 
 ### Development Workflow
+
 1. Make code changes
 2. Run `npm run lint` to check for style issues
 3. Run `npm run rollup` to build and verify no compilation errors
@@ -81,6 +119,7 @@ Always reference these instructions first and fallback to search or bash command
 6. Use VS Code's "Launch Extension" debugger config for manual testing (requires VS Code)
 
 ### Dependencies
+
 - **sass-embedded**: Main SASS compiler (fast, uses Dart Sass directly)
 - **fdir**: Fast directory traversal for finding SASS files
 - **picomatch**: Glob pattern matching for include/exclude logic
@@ -90,7 +129,9 @@ Always reference these instructions first and fallback to search or bash command
 - **eslint**: Code linting and style enforcement
 
 ### Extension Configuration
+
 The extension uses VS Code settings in the `liveSassCompile.*` namespace:
+
 - `liveSassCompile.settings.formats`: Output CSS format configurations
 - `liveSassCompile.settings.watchOnLaunch`: Auto-start watching
 - `liveSassCompile.settings.compileOnWatch`: Compile all files when starting
@@ -99,24 +140,42 @@ The extension uses VS Code settings in the `liveSassCompile.*` namespace:
 - See `docs/settings.md` for complete configuration reference
 
 ### Testing Approach
-- **Unit Tests**: Focus on individual helper functions and utilities
+
+- **Unit Tests**: Colocated with their modules (e.g. `SassCompiler.test.ts` beside `SassCompiler.ts`)
+    - `src/extension.test.ts` — extension activation and command tests
+    - `src/Files/FileWriter.test.ts` — filesystem write tests
+    - `src/Files/SassPathResolver.test.ts` — path generation and slash stripping tests
+    - `src/Files/SassFileClassifier.test.ts` — SASS type classification and exclusion tests
+    - `src/Files/SassFileCollector.test.ts` — SASS file discovery tests
+    - `src/Files/WorkspacePathContext.test.ts` — workspace folder resolution tests
+    - `src/Compilation/SassCompiler.test.ts` — sass-embedded compilation and path alias tests
+    - `src/Compilation/SassCompiler.format.test.ts` — span/warning formatting tests
+    - `src/Compilation/CssPostProcessor.test.ts` — autoprefixer tests
+    - `src/VsCode/Settings.test.ts` — VS Code configuration tests
+    - `src/VsCode/LogEvent.test.ts` — LogEvent interface and factory tests
+    - `src/VsCode/ErrorLogger.test.ts` — error serialization tests
+    - `src/Enums/OutputLevel.test.ts` — OutputLevel enum value tests
+    - `src/Enums/SassConfirmationType.test.ts` — SassConfirmationType enum tests
 - **Integration Tests**: Test VS Code extension commands and file compilation
 - **Manual Testing**: Use sample workspace in `src/test/sample/`
 - **Direct SASS Testing**: Use `npx sass-embedded` for compilation validation
 
 ### CI/CD
+
 - **GitHub Actions**: `.github/workflows/test.yml` runs on PR and manual triggers
 - **Cross-platform**: Tests run on Windows, macOS, and Linux
 - **Build Validation**: Ensures `npm run vscode:prepublish` succeeds
 - **Publishing**: `.github/workflows/publish.yml` handles VS Code Marketplace releases
 
 ### Troubleshooting
+
 - **Build fails**: Check Node.js version (requires 20.x), run `npm ci` to reinstall dependencies
 - **Lint errors**: Run `npm run lint` and fix reported issues
 - **SASS compilation issues**: Test with `npx sass-embedded` directly to isolate extension vs compiler issues
 - **VS Code test failures**: May indicate network restrictions preventing VS Code download
 
 ## Notes
+
 - This extension replaces the original Ritwick Dey Live Sass Compiler with performance improvements
 - Uses sass-embedded instead of node-sass for faster compilation
 - Supports VS Code 1.95.0+ (specified in package.json engines.vscode)
