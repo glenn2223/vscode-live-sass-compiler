@@ -39,7 +39,7 @@ suite("Extension Tests", function () {
 
         assert.deepEqual(
             foundLiveServerCommands.sort(),
-            expectedCommands.sort()
+            expectedCommands.sort(),
         );
     });
 
@@ -51,14 +51,12 @@ suite("Extension Tests", function () {
             ].map((file) =>
                 vscode.Uri.joinPath(
                     vscode.workspace.workspaceFolders![0].uri,
-                    file.path
-                ).path.toLowerCase()
+                    file.path,
+                ).path.toLowerCase(),
             ),
             // Open a file
             doc = await vscode.window.showTextDocument(
-                (
-                    await vscode.workspace.findFiles("css/**")
-                )[0]
+                (await vscode.workspace.findFiles("css/**"))[0],
             );
 
         doc.edit((edit) => {
@@ -75,14 +73,14 @@ suite("Extension Tests", function () {
 
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
-            (file) => file.path.toLowerCase()
+            (file) => file.path.toLowerCase(),
         );
 
         assert.deepEqual(actualFiles.sort(), expectedFiles.sort());
 
         // Revert change
         await doc.edit((edit) =>
-            edit.replace(new vscode.Range(2, 0, 2, 2), "}")
+            edit.replace(new vscode.Range(2, 0, 2, 2), "}"),
         );
 
         await doc.document.save();

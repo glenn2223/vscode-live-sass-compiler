@@ -147,7 +147,9 @@ export class AppModel {
                         "warning",
                     );
 
-                    CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
+                    CompilationUi.revertUIToWatchingStatus(
+                        () => this.isWatching,
+                    );
 
                     return;
 
@@ -162,7 +164,9 @@ export class AppModel {
                         "warning",
                     );
 
-                    CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
+                    CompilationUi.revertUIToWatchingStatus(
+                        () => this.isWatching,
+                    );
 
                     return;
             }

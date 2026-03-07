@@ -1,6 +1,5 @@
 import { window } from "vscode";
 
-
 export class WindowPopout {
     static Inform(message: string): void {
         window.showInformationMessage(message);

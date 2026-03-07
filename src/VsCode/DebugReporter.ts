@@ -125,7 +125,13 @@ export class DebugReporter {
                             "Included SASS Files",
                             "--------------------",
                         );
-                        (await SassFileCollector.getSassFiles(undefined, false, folder)).map((file) => {
+                        (
+                            await SassFileCollector.getSassFiles(
+                                undefined,
+                                false,
+                                folder,
+                            )
+                        ).map((file) => {
                             folderOutput.push(file);
                         });
 
