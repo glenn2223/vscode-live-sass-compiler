@@ -30,6 +30,28 @@ suite("Settings Tests", function () {
         });
     });
 
+    suite("getWorkspacesAreLinked", function () {
+        teardown(async () => {
+            await config().update("workspacesAreLinked", undefined);
+        });
+
+        test("Default value is true", () => {
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), true);
+        });
+
+        test("Returns false when disabled", async () => {
+            await config().update("workspacesAreLinked", false);
+
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), false);
+        });
+
+        test("Returns true when explicitly enabled", async () => {
+            await config().update("workspacesAreLinked", true);
+
+            assert.strictEqual(Settings.getWorkspacesAreLinked(), true);
+        });
+    });
+
     suite("hideOutputWindowOnSuccess eligibility", function () {
         teardown(async () => {
             await config().update("showOutputWindowOn", undefined);
@@ -46,6 +68,71 @@ suite("Settings Tests", function () {
             assert.ok(
                 !(hideEnabled && logLevel > OutputLevel.Information),
                 "Should NOT be eligible to hide at Information level",
+            );
+        });
+
+        test("Eligible at Warning level", async () => {
+            await config().update("showOutputWindowOn", "Warning");
+            await config().update("hideOutputWindowOnSuccess", true);
+
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
+
+            assert.ok(
+                hideEnabled && logLevel > OutputLevel.Information,
+                "Should be eligible to hide at Warning level",
+            );
+        });
+
+        test("Eligible at Error level", async () => {
+            await config().update("showOutputWindowOn", "Error");
+            await config().update("hideOutputWindowOnSuccess", true);
+
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
+
+            assert.ok(
+                hideEnabled && logLevel > OutputLevel.Information,
+                "Should be eligible to hide at Error level",
+            );
+        });
+
+        test("Eligible at None level", async () => {
+            await config().update("showOutputWindowOn", "None");
+            await config().update("hideOutputWindowOnSuccess", true);
+
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
+
+            assert.ok(
+                hideEnabled && logLevel > OutputLevel.Information,
+                "Should be eligible to hide at None level",
+            );
+        });
+
+        test("Not eligible at Debug level", async () => {
+            await config().update("showOutputWindowOn", "Debug");
+            await config().update("hideOutputWindowOnSuccess", true);
+
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
+
+            assert.ok(
+                !(hideEnabled && logLevel > OutputLevel.Information),
+                "Should NOT be eligible to hide at Debug level",
+            );
+        });
+
+        test("Not eligible at Trace level", async () => {
+            await config().update("showOutputWindowOn", "Trace");
+            await config().update("hideOutputWindowOnSuccess", true);
+
+            const logLevel = Settings.getOutputLogLevel();
+            const hideEnabled = Settings.getHideOutputWindowOnSuccess();
+
+            assert.ok(
+                !(hideEnabled && logLevel > OutputLevel.Information),
+                "Should NOT be eligible to hide at Trace level",
             );
         });
     });

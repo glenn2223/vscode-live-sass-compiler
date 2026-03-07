@@ -34,7 +34,7 @@ export async function checkNewAnnouncement(memento: Memento): Promise<void> {
     )!.packageJSON;
     const announment = packageJSON.announcement;
 
-    if (!announment && Object.keys(announment).length === 0) {
+    if (!announment || Object.keys(announment).length === 0) {
         OutputWindow.Show(OutputLevel.Trace, "No announcement has been found");
 
         return;

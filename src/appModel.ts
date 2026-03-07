@@ -118,7 +118,7 @@ export class AppModel {
                     "There isn't an active editor window to process",
                 ]);
 
-                CompilationUi.revertUIToWatchingStatus(this.isWatching);
+                CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
 
                 return;
             }
@@ -147,7 +147,7 @@ export class AppModel {
                         "warning",
                     );
 
-                    CompilationUi.revertUIToWatchingStatus(this.isWatching);
+                    CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
 
                     return;
 
@@ -162,7 +162,7 @@ export class AppModel {
                         "warning",
                     );
 
-                    CompilationUi.revertUIToWatchingStatus(this.isWatching);
+                    CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
 
                     return;
             }
@@ -292,7 +292,7 @@ export class AppModel {
             );
         }
 
-        CompilationUi.revertUIToWatchingStatus(this.isWatching);
+        CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
     }
 
     private async handleNonPartialFileChange(
@@ -334,7 +334,7 @@ export class AppModel {
             ]);
         }
 
-        CompilationUi.revertUIToWatchingStatus(this.isWatching);
+        CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
     }
 
     private async logUnhandledError(

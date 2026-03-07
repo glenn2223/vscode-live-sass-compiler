@@ -18,14 +18,14 @@ export class CompilationUi {
         }
     }
 
-    static revertUIToWatchingStatus(isWatching: boolean): void {
+    static revertUIToWatchingStatus(getIsWatching: () => boolean): void {
         OutputWindow.Show(
             OutputLevel.Trace,
             "Registered timeout to revert UI to correct watching status",
         );
 
         setTimeout(() => {
-            CompilationUi.revertUIToWatchingStatusNow(isWatching);
+            CompilationUi.revertUIToWatchingStatusNow(getIsWatching());
         }, 3000);
     }
 
