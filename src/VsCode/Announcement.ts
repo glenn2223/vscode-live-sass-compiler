@@ -19,7 +19,7 @@ export async function checkNewAnnouncement(memento: Memento): Promise<void> {
     if (showAnnoucement !== true) {
         OutputWindow.Show(
             OutputLevel.Trace,
-            "`showAnnouncements` not true, exiting announcemnet check",
+            "`showAnnouncements` not true, exiting announcement check",
         );
         return;
     }
