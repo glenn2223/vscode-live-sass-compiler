@@ -2,16 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { OutputWindow } from "../VsCode/OutputWindow";
 import { OutputLevel } from "../Enums/OutputLevel";
+import { IFileResolver } from "./IFileResolver";
 
-export interface IFileResolver {
-    FileUri: string;
-    Exception: NodeJS.ErrnoException | null;
-}
-
-export class FileHelper {
+export class FileWriter {
     static async writeToOneFile(
         targetFileUri: string,
-        data: string
+        data: string,
     ): Promise<IFileResolver> {
         OutputWindow.Show(OutputLevel.Trace, `Saving file`, [
             "Saving a file to the system",
@@ -23,8 +19,8 @@ export class FileHelper {
                 resolve({
                     FileUri: targetFileUri,
                     Exception: err,
-                })
-            )
+                }),
+            ),
         );
     }
 
@@ -33,13 +29,13 @@ export class FileHelper {
             OutputLevel.Trace,
             "Checking directory exists",
             [`Directory: ${dir}`],
-            false
+            false,
         );
 
         if (fs.existsSync(dir)) {
             OutputWindow.Show(
                 OutputLevel.Trace,
-                "Directory exists, no action required"
+                "Directory exists, no action required",
             );
 
             return;
@@ -55,7 +51,7 @@ export class FileHelper {
 
         OutputWindow.Show(
             OutputLevel.Trace,
-            "Directory doesn't exist, creating it"
+            "Directory doesn't exist, creating it",
         );
 
         fs.mkdirSync(dir);

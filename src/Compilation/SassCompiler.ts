@@ -1,4 +1,4 @@
-import { SettingsHelper } from "./SettingsHelper";
+import { Settings } from "../VsCode/Settings";
 import { IFormat } from "../Interfaces/IFormat";
 import { OutputWindow } from "../VsCode/OutputWindow";
 import { OutputLevel } from "../Enums/OutputLevel";
@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import { Logger, Options, SourceSpan, compileAsync } from "sass-embedded";
 import { ISassCompileResult } from "../Interfaces/ISassCompileResult";
 
-export class SassHelper {
+export class SassCompiler {
     private static readonly loggerProperty: Logger = {
         warn: (
             message: string,
@@ -58,14 +58,14 @@ export class SassHelper {
                 {
                     findFileUrl: (importUrl) =>
                         // @ts-ignore: 2322
-                        SassHelper.parsePath(
+                        SassCompiler.parsePath(
                             importUrl,
                             (newPath) => pathToFileURL(newPath),
                             pathAliases,
                         ),
                 },
             ],
-            logger: SassHelper.loggerProperty,
+            logger: SassCompiler.loggerProperty,
             sourceMap: true,
             sourceMapIncludeSources: sourceMapIncludeSources,
         };
@@ -190,11 +190,10 @@ export class SassHelper {
             if (normalisedUrl.startsWith("/")) {
                 for (let i = 0; i < workspace.workspaceFolders.length; i++) {
                     const folder = workspace.workspaceFolders[i],
-                        rootIsWorkspace =
-                            SettingsHelper.getConfigSettings<boolean>(
-                                "rootIsWorkspace",
-                                folder,
-                            );
+                        rootIsWorkspace = Settings.getConfigSettings<boolean>(
+                            "rootIsWorkspace",
+                            folder,
+                        );
 
                     if (rootIsWorkspace) {
                         const filePath = [

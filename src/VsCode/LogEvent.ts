@@ -1,10 +1,8 @@
+export interface LogEvent {
+    createdAt: Date;
+    event: unknown;
+}
 
-export class LogEvent {
-    public createdAt: Date;
-    public event: unknown;
-
-    constructor(event: unknown) {
-        this.createdAt = new Date();
-        this.event = event;
-    }
+export function createLogEvent(event: unknown): LogEvent {
+    return { createdAt: new Date(), event };
 }

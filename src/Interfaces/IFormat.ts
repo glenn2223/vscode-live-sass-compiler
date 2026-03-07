@@ -5,7 +5,4 @@ export interface IFormat {
     savePathReplacementPairs?: Record<string, unknown>;
     generateMap?: boolean;
     generateMapIncludeSources?: boolean;
-    linefeed: "cr" | "crlf" | "lf" | "lfcr";
-    indentType: "space" | "tab";
-    indentWidth: number;
 }

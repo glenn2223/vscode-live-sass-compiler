@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { OutputLevel } from "../Enums/OutputLevel";
 
-export class SettingsHelper {
+export class Settings {
     private static configSettings(folder?: vscode.WorkspaceFolder) {
         return vscode.workspace.getConfiguration(
             "liveSassCompile.settings",

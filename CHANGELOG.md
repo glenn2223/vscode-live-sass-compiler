@@ -61,6 +61,8 @@ All notable changes to this project will be documented in this file.
     - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
     - File pattern matching now uses `vscode.languages.match()` for efficient, reliable glob matching
     - File discovery uses `vscode.workspace.findFiles()` instead of manual directory crawling
+- **Codebase modularisation**: Refactored the monolithic `appModel.ts` into focused, single-responsibility modules/groups  
+  This allowed for better testing, which increased test coverage by over 400%
 
 ### Removed
 

@@ -1,5 +1,5 @@
 import { OutputChannel, window } from "vscode";
-import { SettingsHelper } from "../Helpers/SettingsHelper";
+import { Settings } from "./Settings";
 import { OutputLevel } from "../Enums/OutputLevel";
 
 export class OutputWindow {
@@ -20,7 +20,7 @@ export class OutputWindow {
         msgBody?: string[] | null,
         addEndLine = true,
     ): void {
-        const userLogLevel = SettingsHelper.getOutputLogLevel();
+        const userLogLevel = Settings.getOutputLogLevel();
 
         if (
             outputLevel >= userLogLevel ||
