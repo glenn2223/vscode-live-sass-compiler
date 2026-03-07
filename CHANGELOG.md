@@ -36,9 +36,6 @@ All notable changes to this project will be documented in this file.
     - `liveSassCompile.settings.useNewCompiler`
 - Those who historically used `useNewCompiler` will find that source contents are no longer included inline by default.  
   To restore the old behaviour, set `generateMapIncludeSources` to `true`.
-- Migrating from picomatch to native VS Code pattern matching means that the below is no longer supported:
-    - extglobs (e.g. `@(a|b)`, `!(a|b)`, `+(a|b)`, `?(a|b)`, or `*(a|b)`)
-    - negation (`!pattern`)
 - Requires VS Code v1.95 or later
 
 ### Added
@@ -57,16 +54,15 @@ All notable changes to this project will be documented in this file.
 
 - Switched from `sass@1.89.2` to `sass-embedded@1.97.3` - as mentioned above
 - Start-up optimisation for when compiling is done upon launch (in larger projects)
-- **Architecture change**: Replaced `fdir` and `picomatch` with VS Code's native APIs
+- **Architecture change**: Replaced `fdir` with VS Code's native APIs
     - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
-    - File pattern matching now uses `vscode.languages.match()` for efficient, reliable glob matching
     - File discovery uses `vscode.workspace.findFiles()` instead of manual directory crawling
 - **Codebase modularisation**: Refactored the monolithic `appModel.ts` into focused, single-responsibility modules/groups  
   This allowed for better testing, which increased test coverage by over 400%
 
 ### Removed
 
-- Removed `fdir` and `picomatch` dependencies - now using VS Code's built-in file watching and pattern matching
+- Removed `fdir` dependency - now using VS Code's built-in file watching and file discovery
 
 ### Updated
 
@@ -79,7 +75,7 @@ All notable changes to this project will be documented in this file.
 - Fixed broken tests and added added several new tests
 - Added test badge to README & changed badge formats
 - Added funding links to README & `package.json`
-- Major code clean up: extracted helper methods, removed dead code, removed some dependencies, etc.  
+- Major code clean up: extracted methods, code refactor, removed dead code, removed some dependencies, etc.  
   All-in-all, the `extensions.js` file is now **70% smaller**
 - Updated the logo; keeping the original style but with a higher resolution
 - Code formatting and linting

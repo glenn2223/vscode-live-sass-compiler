@@ -20,7 +20,7 @@ export default {
             compact: true,
             plugins: [
                 {
-                    name: "navigtorFix",
+                    name: "navigatorFix",
                     renderChunk(code) {
                         return {
                             code: `var navigator=null!==navigator&&void 0!==navigator?navigator:navigator={userAgent:null};${code}`,

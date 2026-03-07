@@ -163,3 +163,228 @@ suite("SassFileClassifier.matchesGlobPattern", function () {
         assert.equal(result, true);
     });
 });
+
+suite(
+    "SassFileClassifier.matchesGlobPattern (picomatch features)",
+    function () {
+        // --- Brace expansion ---
+        test("Brace expansion {scss,sass} matches .scss", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.{scss,sass}"],
+                    "/project/main.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Brace expansion {scss,sass} matches .sass", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.{scss,sass}"],
+                    "/project/main.sass",
+                ),
+                true,
+            );
+        });
+
+        test("Brace expansion {scss,sass} does not match .css", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.{scss,sass}"],
+                    "/project/main.css",
+                ),
+                false,
+            );
+        });
+
+        // --- Extglob @() - match exactly one of the alternatives ---
+        test("Extglob @(scss|sass) matches .scss", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.@(scss|sass)"],
+                    "/project/main.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob @(scss|sass) matches .sass", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.@(scss|sass)"],
+                    "/project/main.sass",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob @(scss|sass) does not match .css", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*.@(scss|sass)"],
+                    "/project/main.css",
+                ),
+                false,
+            );
+        });
+
+        // --- Extglob ?() - zero or one occurrence ---
+        test("Extglob ?(theme-) matches zero occurrences (filename without prefix)", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/?(theme-)main.scss"],
+                    "/project/main.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob ?(theme-) matches one occurrence (filename with prefix)", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/?(theme-)main.scss"],
+                    "/project/theme-main.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob ?(theme-) does not match two occurrences", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/?(theme-)main.scss"],
+                    "/project/theme-theme-main.scss",
+                ),
+                false,
+            );
+        });
+
+        // --- Extglob +() - one or more occurrences ---
+        test("Extglob +(base|theme) matches a single listed alternative", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/+(base|theme).scss"],
+                    "/project/base.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob +(base|theme) matches multiple concatenated repetitions", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/+(base|theme).scss"],
+                    "/project/basetheme.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob +(base|theme) does not match an unlisted value", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/+(base|theme).scss"],
+                    "/project/other.scss",
+                ),
+                false,
+            );
+        });
+
+        // --- Extglob *() - zero or more occurrences ---
+        test("Extglob *(my-) matches zero occurrences", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*(my-)styles.scss"],
+                    "/project/styles.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob *(my-) matches one occurrence", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*(my-)styles.scss"],
+                    "/project/my-styles.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob *(my-) does not match an unrelated prefix", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/*(my-)styles.scss"],
+                    "/project/their-styles.scss",
+                ),
+                false,
+            );
+        });
+
+        // --- Extglob !() - match anything except the pattern ---
+        test("Extglob !(vendor) matches a non-excluded directory", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/!(vendor)/*.scss"],
+                    "/project/src/main.scss",
+                ),
+                true,
+            );
+        });
+
+        test("Extglob !(vendor) does not match the excluded directory", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/!(vendor)/*.scss"],
+                    "/project/vendor/main.scss",
+                ),
+                false,
+            );
+        });
+
+        // --- Inline negation extglob in filename e.g. **/!(_*).ext ---
+        // Array-level `!pattern` entries are NOT supported — negation must be
+        // expressed inline within the glob string as extglob `!()`.
+        test("Inline negation !(_*) in filename excludes partials", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/!(_*).scss"],
+                    "/project/src/_partial.scss",
+                ),
+                false,
+            );
+        });
+
+        test("Inline negation !(_*) in filename still matches non-partial files", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/!(_*).scss"],
+                    "/project/src/main.scss",
+                ),
+                true,
+            );
+        });
+
+        // --- Dot-directory matching ---
+        test("Dot-directory pattern matches a file inside a dot directory (with workspace)", () => {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                return;
+            }
+            const filePath = vscode.Uri.joinPath(
+                workspaceFolder.uri,
+                ".vscode",
+                "main.scss",
+            ).fsPath;
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    [".vscode/**"],
+                    filePath,
+                    workspaceFolder,
+                ),
+                true,
+            );
+        });
+    },
+);

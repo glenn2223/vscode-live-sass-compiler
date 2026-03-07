@@ -71,6 +71,7 @@ An array of formats. Allows you save to multiple locations, with a customisable 
 
         // Don't create a map file for this "production" output
         "generateMap": false
+    },
     // Segment replacement can work with relative `savePath`s
     {
         "format": "compressed",
