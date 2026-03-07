@@ -24,7 +24,7 @@ export class SassPathResolver {
         const extensionName = format.extensionName || ".css";
 
         if (workspaceRoot) {
-            OutputWindow.Show(OutputLevel.Trace, "No workspace provided", [
+            OutputWindow.Show(OutputLevel.Trace, "Workspace root provided", [
                 `Using originating path: ${filePath}`,
             ]);
 
