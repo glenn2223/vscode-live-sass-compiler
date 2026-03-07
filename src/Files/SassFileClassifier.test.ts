@@ -343,42 +343,24 @@ suite(
             );
         });
 
-        // --- Negation patterns in the array ---
-        test("Negation !pattern still matches files that do not trigger the negation", () => {
+        // --- Inline negation extglob in filename e.g. **/!(_*).ext ---
+        // Array-level `!pattern` entries are NOT supported — negation must be
+        // expressed inline within the glob string as extglob `!()`.
+        test("Inline negation !(_*) in filename excludes partials", () => {
             assert.equal(
                 SassFileClassifier.matchesGlobPattern(
-                    ["**/*.scss", "!**/vendor/**"],
+                    ["**/!(_*).scss"],
+                    "/project/src/_partial.scss",
+                ),
+                false,
+            );
+        });
+
+        test("Inline negation !(_*) in filename still matches non-partial files", () => {
+            assert.equal(
+                SassFileClassifier.matchesGlobPattern(
+                    ["**/!(_*).scss"],
                     "/project/src/main.scss",
-                ),
-                true,
-            );
-        });
-
-        test("Negation !pattern excludes files that match the negated pattern", () => {
-            assert.equal(
-                SassFileClassifier.matchesGlobPattern(
-                    ["**/*.scss", "!**/vendor/**"],
-                    "/project/vendor/main.scss",
-                ),
-                false,
-            );
-        });
-
-        test("Negation !pattern excludes partial files when combined with a positive pattern", () => {
-            assert.equal(
-                SassFileClassifier.matchesGlobPattern(
-                    ["**/*.scss", "!**/_*.scss"],
-                    "/project/_partial.scss",
-                ),
-                false,
-            );
-        });
-
-        test("Negation with positive pattern still matches non-negated files", () => {
-            assert.equal(
-                SassFileClassifier.matchesGlobPattern(
-                    ["**/*.scss", "!**/_*.scss"],
-                    "/project/main.scss",
                 ),
                 true,
             );
