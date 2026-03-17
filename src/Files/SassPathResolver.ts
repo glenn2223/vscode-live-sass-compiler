@@ -29,7 +29,7 @@ export class SassPathResolver {
             ]);
 
             const workspacePath = workspaceRoot.uri.fsPath;
-            let generatedUri: string | null = null;
+            let generatedUri: string;
 
             // NOTE: If all SavePath settings are `NULL`, CSS Uri will be same location as SASS
             if (format.savePath) {
@@ -111,7 +111,7 @@ export class SassPathResolver {
 
                 for (const key in format.savePathReplacementPairs) {
                     if (
-                        Object.prototype.hasOwnProperty.hasOwnProperty.call(
+                        Object.prototype.hasOwnProperty.call(
                             format.savePathReplacementPairs,
                             key,
                         )
