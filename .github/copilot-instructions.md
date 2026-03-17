@@ -178,6 +178,6 @@ The extension uses VS Code settings in the `liveSassCompile.*` namespace:
 
 - This extension replaces the original Ritwick Dey Live Sass Compiler with performance improvements
 - Uses sass-embedded instead of node-sass for faster compilation
-- Supports VS Code 1.95.0+ (specified in package.json engines.vscode)
+- Supports VS Code 1.110.0+ (specified in package.json engines.vscode)
 - Has extensive configuration options for output formatting, file watching, and autoprefixing
 - Includes comprehensive documentation in docs/ folder

@@ -30,7 +30,7 @@
         "url": "https://github.com/glenn2223/vscode-live-sass-compiler?sponsor"
     },
     "engines": {
-        "vscode": "^1.95.0"
+        "vscode": "^1.110.0"
     },
     "keywords": [
         "SASS",
@@ -378,25 +378,25 @@
         "autoprefixer": "^10.4.27",
         "picomatch": "^4.0.3",
         "postcss": "^8.5.8",
-        "sass-embedded": "^1.97.3"
+        "sass-embedded": "^1.98.0"
     },
     "devDependencies": {
-        "@eslint/eslintrc": "^3.3.4",
+        "@eslint/eslintrc": "^3.3.5",
         "@eslint/js": "^9.26.0",
-        "@rollup/plugin-commonjs": "^29.0.0",
+        "@rollup/plugin-commonjs": "^29.0.2",
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^16.0.3",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^12.3.0",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^25.3.3",
+        "@types/node": "^25.5.0",
         "@types/picomatch": "^4.0.2",
-        "@types/vscode": "1.95",
-        "@typescript-eslint/eslint-plugin": "^8.56.1",
-        "@typescript-eslint/parser": "^8.56.1",
+        "@types/vscode": "1.110.0",
+        "@typescript-eslint/eslint-plugin": "^8.57.1",
+        "@typescript-eslint/parser": "^8.57.1",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
-        "eslint": "^9.39.3",
+        "eslint": "^9.39.4",
         "globals": "^17.4.0",
         "mocha": "^11.7.5",
         "rollup": "^4.59.0",

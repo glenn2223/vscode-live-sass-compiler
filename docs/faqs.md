@@ -18,7 +18,7 @@ Firstly, welcome! I'm glad you're here!
 
 Here's some of the most important changes:
 
-- We now require VS Code version 1.95
+- We now require VS Code version 1.110
 - We are no longer dependant on `ritwickdey.LiveServer`. You can manually add this package to VS Code, if you need it
 - We are using a quicker type of SASS, `sass-embedded`
 - Some settings have been changed

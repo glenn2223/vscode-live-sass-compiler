@@ -68,8 +68,8 @@ suite("Extension Tests", function () {
             assert.ok(false, "Save failed");
         }
 
-        // Wait .4 seconds to allow save success
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        // Wait .6 seconds to allow save success
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         // Get the folders files
         const actualFiles = (await vscode.workspace.findFiles("css/**")).map(

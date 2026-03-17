@@ -36,7 +36,7 @@ All notable changes to this project will be documented in this file.
     - `liveSassCompile.settings.useNewCompiler`
 - Those who historically used `useNewCompiler` will find that source contents are no longer included inline by default.  
   To restore the old behaviour, set `mapsIncludeSources` to `true`.
-- Requires VS Code v1.95 or later
+- Requires VS Code v1.110 or later
 
 ### Added
 
@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Switched from `sass@1.89.2` to `sass-embedded@1.97.3` - as mentioned above
+- Switched from `sass@1.89.2` to `sass-embedded@1.98.0` - as mentioned above
 - Start-up optimisation for when compiling is done upon launch (in larger projects)
 - **Architecture change**: Replaced `fdir` with VS Code's native APIs
     - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
