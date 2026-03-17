@@ -22,23 +22,23 @@ Here's some of the most important changes:
 - We are no longer dependant on `ritwickdey.LiveServer`. You can manually add this package to VS Code, if you need it
 - We are using a quicker type of SASS, `sass-embedded`
 - Some settings have been changed
-  - `formats[]`:
-    - `format` only accepts `compressed` or `expanded`
-    - `extensionName` allows any string that ends in `.css` - and contains no path separators - meaning that `-min.css` is now valid
-  - `autoprefix`:
-    - The default is `defaults`
-    - `null` is no longer accepted, use `false` instead
-    - When `true` we will find a `.browserslistrc` file or `browserslist` in your `package.json`. No more duplicating settings!
-  - `showOutputWindow` is now `showOutputWindowOn` and uses log values (`Debug`, `Error`, etc.). It's default log level is `Information` - at this level it will output the same information that the original extension does
+    - `formats[]`:
+        - `format` only accepts `compressed` or `expanded`
+        - `extensionName` allows any string that ends in `.css` - and contains no path separators - meaning that `-min.css` is now valid
+    - `autoprefix`:
+        - The default is `defaults`
+        - `null` is no longer accepted, use `false` instead
+        - When `true` we will find a `.browserslistrc` file or `browserslist` in your `package.json`. No more duplicating settings!
+    - `showOutputWindow` is now `showOutputWindowOn` and uses log values (`Debug`, `Error`, etc.). It's default log level is `Information` - at this level it will output the same information that the original extension does
 - Some settings are new!
-  - `formats[]`:
-    - `savePathReplacementPairs`: replace segments in the output path
-    - `generateMap`: generate map files at a format level (overwriting the top-tier setting of the same name)
-    - `generateMapIncludeSources`: choose to include SASS sources in the map file itself
-  - `watchOnLaunch`: state whether you want to watch files upon launch
-  - `compileOnWatch`: state if files should be compiled upon watching
-  - `forceBaseDirectory`: state the base directory of all you SASS files. Aids in reducing wasted resources while searching for files
-  - `partialsList`: specify what files are actually partials (or which folders contain them)
+    - `formats[]`:
+        - `savePathReplacementPairs`: replace segments in the output path
+        - `generateMap`: generate map files at a format level (overwriting the top-tier setting of the same name)
+        - `mapsIncludeSources`: choose to include SASS sources in the map file itself
+    - `watchOnLaunch`: state whether you want to watch files upon launch
+    - `compileOnWatch`: state if files should be compiled upon watching
+    - `forceBaseDirectory`: state the base directory of all you SASS files. Aids in reducing wasted resources while searching for files
+    - `partialsList`: specify what files are actually partials (or which folders contain them)
 
 Here are some things you probably won't care about as much
 
@@ -46,11 +46,11 @@ Here are some things you probably won't care about as much
 - The quicker SASS package is `sass-embedded`. This utilises DartSass directly - rather than a JS interpreted version
 - We abandoned `glob` (the package, not the patterns) and we now use native VS Code features or speed and reliability
 - New commands!
-  - `liveSass.command.compileCurrentSass`: perform a one-time compilation of the current SASS file
-  - `liveSass.command.createIssue`: opens a link to create a new issue in GutHub. If an unexpected error occurred then error information is readily available to paste into the new issue
-  - `liveSass.command.debugInclusion`: check if the current SASS file will be included, based on your settings
-  - `liveSass.command.debugFileList`: get a full list of files that are included and excluded
-  - Various commands to change the log level (meaning you can key bind them)
+    - `liveSass.command.compileCurrentSass`: perform a one-time compilation of the current SASS file
+    - `liveSass.command.createIssue`: opens a link to create a new issue in GutHub. If an unexpected error occurred then error information is readily available to paste into the new issue
+    - `liveSass.command.debugInclusion`: check if the current SASS file will be included, based on your settings
+    - `liveSass.command.debugFileList`: get a full list of files that are included and excluded
+    - Various commands to change the log level (meaning you can key bind them)
 - We support multi-root/multi-folder workspaces
 - Map files now link back to the correct line after `autoprefixer` has been applied
 - Clicking the status bar icon while in the `Success` or `Error` state will show the output window

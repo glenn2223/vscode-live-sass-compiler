@@ -17,14 +17,14 @@
 
 An array of formats. Allows you save to multiple locations, with a customisable format and extension for each
 
-| Properties                | Type                       | Default    | Notes                                                                |
-| ------------------------- | -------------------------- | ---------- | -------------------------------------------------------------------- |
-| format                    | `expanded` OR `compressed` | `expanded` | The output style of the generated file                               |
-| extensionName             | `string`                   | `.css`     | The extension suffix added to the output file (must end with `.css`) |
-| savePath                  | `string?`                  | `null`     | See [save path notes]                                                |
-| savePathReplacementPairs  | `Record<string, string>?`  | `null`     | See [save path notes]                                                |
-| generateMap               | `boolean?`                 | `null`     | Choose to output maps at a format level instead                      |
-| generateMapIncludeSources | `boolean?`                 | `false`    | Include sourcesContent in the generated source map                   |
+| Properties               | Type                       | Default    | Notes                                                                |
+| ------------------------ | -------------------------- | ---------- | -------------------------------------------------------------------- |
+| format                   | `expanded` OR `compressed` | `expanded` | The output style of the generated file                               |
+| extensionName            | `string`                   | `.css`     | The extension suffix added to the output file (must end with `.css`) |
+| savePath                 | `string?`                  | `null`     | See [save path notes]                                                |
+| savePathReplacementPairs | `Record<string, string>?`  | `null`     | See [save path notes]                                                |
+| generateMap              | `boolean?`                 | `null`     | Choose to output maps at a format level instead                      |
+| mapsIncludeSources       | `boolean?`                 | `false`    | Include sourcesContent in the generated source map                   |
 
 <details>
 <summary>Examples</summary>
@@ -189,12 +189,12 @@ Create a companion map file for each of the compiled files
 
 ---
 
-## liveSassCompile.settings.generateMapIncludeSources
+## liveSassCompile.settings.mapsIncludeSources
 
 > ℹ This setting can vary between workspace folders - [read more][multi-rootfaq]
 
 Include sourcesContent in the generated source map for each compiled CSS.  
-**Note:** this can be overwritten in the `formats[].generateMapIncludeSources` setting
+**Note:** this can be overwritten in the `formats[].mapsIncludeSources` setting
 
 **Type:** `boolean`
 **Default:** `false`

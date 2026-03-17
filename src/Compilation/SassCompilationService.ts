@@ -66,13 +66,10 @@ export class SassCompilationService {
             return false;
         }
 
-        // Resolve generateMapIncludeSources: per-format overrides global
-        const generateMapIncludeSources =
-            format.generateMapIncludeSources ??
-            Settings.getConfigSettings<boolean>(
-                "generateMapIncludeSources",
-                folder,
-            );
+        // Resolve mapsIncludeSources: per-format overrides global
+        const mapsIncludeSources =
+            format.mapsIncludeSources ??
+            Settings.getConfigSettings<boolean>("mapsIncludeSources", folder);
 
         const pathAliases = Settings.getConfigSettings<Record<
             string,
@@ -81,7 +78,7 @@ export class SassCompilationService {
 
         const options = SassCompiler.toSassOptions(
             format,
-            generateMapIncludeSources,
+            mapsIncludeSources,
             pathAliases,
         );
 

@@ -4,5 +4,5 @@ export interface IFormat {
     savePath?: string;
     savePathReplacementPairs?: Record<string, unknown>;
     generateMap?: boolean;
-    generateMapIncludeSources?: boolean;
+    mapsIncludeSources?: boolean;
 }
