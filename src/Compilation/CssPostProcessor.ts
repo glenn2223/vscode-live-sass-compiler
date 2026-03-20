@@ -76,7 +76,11 @@ export async function autoprefix(
         };
     } finally {
         if (browsers === true) {
-            process.env.BROWSERSLIST_DISABLE_CACHE = oldBrowserlistCache;
+            if (oldBrowserlistCache === undefined) {
+                delete process.env.BROWSERSLIST_DISABLE_CACHE;
+            } else {
+                process.env.BROWSERSLIST_DISABLE_CACHE = oldBrowserlistCache;
+            }
 
             OutputWindow.Show(
                 OutputLevel.Trace,

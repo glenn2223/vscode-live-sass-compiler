@@ -2,6 +2,84 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { SassFileCollector } from "./SassFileCollector";
 
+suite("SassFileCollector.buildIncludeGlob", function () {
+    test("Returns default glob when no patterns provided", () => {
+        assert.equal(
+            SassFileCollector.buildIncludeGlob(undefined),
+            "**/*.s[ac]ss",
+        );
+    });
+
+    test("Returns default glob for empty array", () => {
+        assert.equal(SassFileCollector.buildIncludeGlob([]), "**/*.s[ac]ss");
+    });
+
+    test("Returns pattern as-is for single item", () => {
+        assert.equal(
+            SassFileCollector.buildIncludeGlob(["src/**/*.scss"]),
+            "src/**/*.scss",
+        );
+    });
+
+    test("Wraps multiple patterns in brace syntax", () => {
+        assert.equal(
+            SassFileCollector.buildIncludeGlob([
+                "src/**/*.scss",
+                "lib/**/*.sass",
+            ]),
+            "{src/**/*.scss,lib/**/*.sass}",
+        );
+    });
+
+    test("Wraps three or more patterns in brace syntax", () => {
+        assert.equal(
+            SassFileCollector.buildIncludeGlob([
+                "a/**/*.scss",
+                "b/**/*.scss",
+                "c/**/*.scss",
+            ]),
+            "{a/**/*.scss,b/**/*.scss,c/**/*.scss}",
+        );
+    });
+});
+
+suite(
+    "SassFileCollector.buildIncludeGlob — findFiles integration",
+    function () {
+        // These two patterns target files in different directories of the sample workspace:
+        //   "alias_test.scss"  → root-level file
+        //   "css/**/*.scss"    → file inside the css/ subdirectory
+        // Together they exercise the multi-pattern case that was previously broken.
+        const patterns = ["alias_test.scss", "css/**/*.scss"];
+
+        test("Brace-wrapped glob (fixed behaviour) matches files from both patterns", async () => {
+            const folder = vscode.workspace.workspaceFolders?.[0];
+            if (!folder) {
+                return;
+            }
+
+            // What the fix produces: wrap multiple patterns in {a,b} brace syntax
+            const fixedGlob = SassFileCollector.buildIncludeGlob(patterns);
+            assert.strictEqual(fixedGlob, `{${patterns.join(",")}}`);
+
+            const found = await vscode.workspace.findFiles(
+                new vscode.RelativePattern(folder, fixedGlob),
+            );
+
+            const paths = found.map((f) => f.fsPath.replace(/\\/g, "/"));
+
+            assert.ok(
+                paths.some((p) => p.endsWith("alias_test.scss")),
+                "Should find alias_test.scss via first pattern",
+            );
+            assert.ok(
+                paths.some((p) => p.endsWith("css/sample.scss")),
+                "Should find css/sample.scss via second pattern",
+            );
+        });
+    },
+);
+
 suite("SassFileCollector.getSassFiles", function () {
     test("Returns an array", async () => {
         const result = await SassFileCollector.getSassFiles();

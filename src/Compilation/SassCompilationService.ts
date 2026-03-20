@@ -120,7 +120,7 @@ export class SassCompilationService {
             autoprefixerTarget = false;
         }
 
-        if (autoprefixerTarget != false) {
+        if (autoprefixerTarget !== false) {
             OutputWindow.Show(
                 OutputLevel.Trace,
                 "Autoprefixer isn't false, applying to file",
