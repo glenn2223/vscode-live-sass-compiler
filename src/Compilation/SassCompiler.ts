@@ -247,7 +247,7 @@ export class SassCompiler {
                 );
 
                 lineNumber++;
-            } while (lineNumber < span.end.line);
+            } while (lineNumber <= span.end.line);
 
             stringArray.push(
                 this.charOfLength(
@@ -304,7 +304,7 @@ export class SassCompiler {
             outString += this.charOfLength(span.end.column - 4, "...^");
         } else {
             outString +=
-                this.charOfLength(span.start.column - 2, "^") +
+                this.charOfLength(span.start.column - 1, "^") +
                 this.charOfLength(
                     span.end.column - span.start.column - 1,
                     "^",

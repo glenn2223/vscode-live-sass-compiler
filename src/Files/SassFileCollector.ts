@@ -96,7 +96,9 @@ export class SassFileCollector {
                     try {
                         const includePattern = new vscode.RelativePattern(
                             basePath,
-                            (effectivePattern || ["**/*.s[ac]ss"]).join(","),
+                            SassFileCollector.buildIncludeGlob(
+                                effectivePattern,
+                            ),
                         );
 
                         const excludePattern =
@@ -150,5 +152,16 @@ export class SassFileCollector {
         );
 
         return fileList;
+    }
+
+    /**
+     * Build a VS Code glob string from an array of include patterns.
+     * A single pattern is passed through as-is; multiple patterns are
+     * wrapped in `{a,b}` brace syntax required by the VS Code glob engine.
+     */
+    static buildIncludeGlob(patterns?: string[]): string {
+        const items =
+            patterns && patterns.length > 0 ? patterns : ["**/*.s[ac]ss"];
+        return items.length === 1 ? items[0] : `{${items.join(",")}}`;
     }
 }

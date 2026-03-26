@@ -14,7 +14,7 @@
             "outFiles": [
                 "${workspaceRoot}/**/*.{t,j}s"
             ],
-            "preLaunchTask": "npm: vscode:prepublish"
+            "preLaunchTask": "npm: pretest"
         },
         {
             "name": "Launch Tests",
