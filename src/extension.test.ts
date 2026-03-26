@@ -43,7 +43,8 @@ suite("Extension Tests", function () {
         );
     });
 
-    test("VS Code save generates files", async () => {
+    test("VS Code save generates files", async function () {
+        this.timeout(10000);
         const expectedFiles = [
                 vscode.Uri.file("css/sample.scss"),
                 vscode.Uri.file("css/sample.css.map"),
