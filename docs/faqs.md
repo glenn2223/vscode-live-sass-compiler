@@ -162,8 +162,11 @@ The following settings can all be made available to each workspaces `settings.js
 - `liveSassCompile.settings.excludeList`
 - `liveSassCompile.settings.includeItems`
 - `liveSassCompile.settings.generateMap`
+- `liveSassCompile.settings.mapsIncludeSources`
 - `liveSassCompile.settings.autoprefix`
 - `liveSassCompile.settings.forceBaseDirectory`
 - `liveSassCompile.settings.partialsList`
+- `liveSassCompile.settings.rootIsWorkspace`
+- `liveSassCompile.settings.pathAliases`
 
 </details>

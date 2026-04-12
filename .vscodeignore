@@ -6,8 +6,11 @@ _site/**
 .vscode-test/**
 assets/**
 dist/**
-images/Screenshot/**
+images/**
+!images/icon.png
 node_modules/**
+!node_modules/sass-embedded-*
+!node_modules/sass-embedded-*/**
 out/announcement/**
 out/test/**
 src/**
@@ -19,4 +22,4 @@ _config.yml
 .gitignore
 tsconfig.json
 tslint.json
-webpack.config.js
+eslint.config.mjs
