@@ -13,7 +13,7 @@ Why not join the discord community for devs everywhere: [![Discord](https://img.
 
 ---
 
-[<img align="right" style="width:50%" src="./images/thumbnail-quick-guide.png" title="Watch the YouTube video">](https://youtu.be/9J__JAgQbS0)
+[<img align="right" style="width:50%" src="./images/thumbnail-quick-guide.png" title="Watch the YouTube video" alt="Watch the Live SASS Compiler: A Quick Start Guide, YouTube video">](https://youtu.be/9J__JAgQbS0)
 
 _**Like it?** [Leave a review](https://marketplace.visualstudio.com/items?itemName=glenn2223.live-sass#review-details) (please)  
 **Something wrong?** [Report an issue](https://github.com/glenn2223/vscode-live-sass-compiler/issues/new)  
@@ -35,16 +35,17 @@ A VSCode Extension that help you to compile/transpile your SASS/SCSS files to CS
 - Live SASS & SCSS compile.
 - Customizable file location of exported CSS.
 - Customizable exported CSS style (`expanded`, `compressed`).
-- Customizable extension name (`.css` or `.min.css`).
+- Customizable extension name (`.css`, `.min.css`, etc.).
 - Quick status bar control.
 - Exclude specific folders by settings.
 - Autoprefix support (See [settings section](./docs/settings.md#livesasscompilesettingsautoprefix))
-- Reference a node module with a leading tilde e.g `~/nodePackage/theSass.scss`
+- Reference a module (node, or otherwise) with `pkg:` or `~/`  
+  e.g. `pkg:nodePackage/theSass.scss` or `~/nodePackage/theSass.scss`
 
 ## Usage/Shortcuts
 
 1. Click to `Watch Sass` from the status bar to turn on the live compilation and then click to `Stop Watching Sass` from the status bar to turn off live compilation.  
-   ![Status bar control](./images/Screenshot/statusbar.jpg)
+   ![Status bar control](./images/Screenshot/statusbar.png)
 
 2. Press `F1` or `ctrl+shift+P` and enter `Live Sass: Watch Sass` to start watching and `Live Sass: Stop Watching Sass` to stop watching.
 3. Press `F1` or `ctrl+shift+P` and enter `Live Sass: Compile Sass - Without Watch Mode` to compile one time compile the current file.
@@ -70,7 +71,7 @@ Any monthly donations that we get - specifically referencing this project - will
 
 **Who do you share with?**
 
-The packages I rely on for this project already have large-scale funding or are back by for-profit organisations
+The packages I rely on for this project already have significant funding or are backed by large for-profit organisations
 
 ## Thank you Ritwick Dey
 

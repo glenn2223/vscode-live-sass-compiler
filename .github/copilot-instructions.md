@@ -95,7 +95,7 @@ When making changes that affect the repository structure, key files, build proce
 
 - `src/extension.ts`: Activation entry point — creates AppModel, delegates command registration to `CommandRegistry`
 - `src/appModel.ts`: Thin lifecycle coordinator — watcher setup, change routing, dispose. Delegates all real work.
-- `src/Files/SassFileCollector.ts`: Finds qualifying SASS files using fdir + picomatch
+- `src/Files/SassFileCollector.ts`: Finds qualifying SASS files using `vscode.workspace.findFiles()` and picomatch
 - `src/Files/SassFileClassifier.ts`: Determines if a file is a partial, excluded, or compilable SASS file
 - `src/Files/SassPathResolver.ts`: Generates output CSS/map paths from SASS input paths
 - `src/Compilation/SassCompiler.ts`: sass-embedded adapter — options building and single-file compilation
@@ -121,7 +121,7 @@ When making changes that affect the repository structure, key files, build proce
 ### Dependencies
 
 - **sass-embedded**: Main SASS compiler (fast, uses Dart Sass directly)
-- **fdir**: Fast directory traversal for finding SASS files
+- **sass**: Pure JS Dart Sass — bundled as a fallback in the universal VSIX
 - **picomatch**: Glob pattern matching for include/exclude logic
 - **autoprefixer + postcss**: CSS vendor prefix automation
 - **rollup**: Module bundler for creating single extension.js file
