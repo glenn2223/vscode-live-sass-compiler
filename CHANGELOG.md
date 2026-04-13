@@ -23,7 +23,9 @@ Types of changes
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [7.1.0 (pre-release)][7.1.0] - 2026-04-14
+
+<small>[Compare to previous release][comp:7.1.0]</small>
 
 ### Breaking Changes
 
@@ -52,7 +54,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Switched from `sass@1.89.2` to `sass-embedded@1.98.0` - as mentioned above
+- Switched from `sass@1.89.2` to `sass-embedded@1.99.0` - as mentioned above
+  **Note:** the universal VSIX still includes `sass` (pure JS) as a fallback
 - Start-up optimisation for when compiling is done upon launch (in larger projects)
 - **Architecture change**: Replaced `fdir` with VS Code's native APIs
     - Now uses a single `FileSystemWatcher` for all SASS/SCSS files
@@ -66,9 +69,9 @@ All notable changes to this project will be documented in this file.
 
 ### Updated
 
-- `autoprefixer` to `10.4.27` [Changelog][cl:ap]
+- `autoprefixer` to `10.5.0` [Changelog][cl:ap]
 - `picomatch` to `4.0.4` [Changelog][cl:pm]
-- `postcss` to `8.5.8` [Changelog][cl:pc]
+- `postcss` to `8.5.9` [Changelog][cl:pc]
 - Various dev dependency updates _(nothing user facing)_
 
 ### Other
@@ -868,6 +871,8 @@ All notable changes to this project will be documented in this file.
 | 0.0.2   | 11.07.17   | Small description updated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | 0.0.1   | 11.07.17   | Initial Preview Release with following key features. <br> – Live SASS & SCSS Compile. <br> – Customizable file location of exported CSS. <br> – Customizable exported CSS Style (`expanded`, `compact`, `compressed`, `nested`.)<br> – Quick Status bar control.<br> – Live Reload to browser (`Live Server` extension dependency).                                                                                                                                                                                                                                                                                                                                                                          |
 
+[7.1.0]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v7.1.0
+[comp:7.1.0]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v6.1.5...v7.1.0
 [6.1.5]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.5
 [comp:6.1.5]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v6.1.4...v6.1.5
 [6.1.4]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.4
@@ -918,7 +923,7 @@ All notable changes to this project will be documented in this file.
 [4.1.0]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v3.0.0...v4.0.0
 [cl:ap]: https://github.com/postcss/autoprefixer/blob/main/CHANGELOG.md
-[cl:fd]: https://github.com/thecodrr/fdir/releases
 [cl:pc]: https://github.com/postcss/postcss/blob/main/CHANGELOG.md
 [cl:pm]: https://github.com/micromatch/picomatch/blob/master/CHANGELOG.md
 [cl:sa]: https://github.com/sass/dart-sass/blob/main/CHANGELOG.md
+[cl:fd]: https://github.com/thecodrr/fdir/releases

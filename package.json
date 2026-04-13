@@ -2,7 +2,7 @@
     "name": "live-sass",
     "displayName": "Live Sass Compiler",
     "description": "Compile Sass or Scss to CSS at realtime.",
-    "version": "6.1.5",
+    "version": "7.1.0",
     "publisher": "glenn2223",
     "author": {
         "name": "Glenn Marks",
@@ -24,6 +24,10 @@
         {
             "type": "buymeacoffee",
             "url": "https://www.buymeacoffee.com/TopMarksDevelopment"
+        },
+        {
+            "type": "fourthwall",
+            "url": "https://top-marks-development-shop.fourthwall.com"
         }
     ],
     "sponsor": {
@@ -375,10 +379,11 @@
         "rollup-testing": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --environment TESTING"
     },
     "dependencies": {
-        "autoprefixer": "^10.4.27",
+        "autoprefixer": "^10.5.0",
         "picomatch": "^4.0.4",
-        "postcss": "^8.5.8",
-        "sass-embedded": "^1.98.0"
+        "postcss": "^8.5.9",
+        "sass": "^1.99.0",
+        "sass-embedded": "^1.99.0"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.5",
@@ -389,22 +394,22 @@
         "@rollup/plugin-terser": "^1.0.0",
         "@rollup/plugin-typescript": "^12.3.0",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^25.5.0",
-        "@types/picomatch": "^4.0.2",
+        "@types/node": "^25.6.0",
+        "@types/picomatch": "^4.0.3",
         "@types/vscode": "1.110.0",
-        "@typescript-eslint/eslint-plugin": "^8.57.2",
-        "@typescript-eslint/parser": "^8.57.2",
+        "@typescript-eslint/eslint-plugin": "^8.58.2",
+        "@typescript-eslint/parser": "^8.58.2",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
-        "eslint": "^10.1.0",
-        "globals": "^17.4.0",
+        "eslint": "^10.2.0",
+        "globals": "^17.5.0",
         "mocha": "^11.7.5",
-        "rollup": "^4.60.0",
+        "rollup": "^4.60.1",
         "tslib": "^2.8.1",
         "typescript": "^5.9.3"
     },
     "announcement": {
-        "onVersion": "6.1.5",
-        "message": "SassCompiler v6.1.5: Added \"Support Me\" links. Along with dependency bumps, automation fixes and a link to our NEW community Discord server!\nYes, there's helpful [YouTube videos](https://www.youtube.com/playlist?list=PLhdDmC4kQ8MqhX3RtLqfIwz8oaLut1m5X) too!"
+        "onVersion": "7.1.0",
+        "message": "SassCompiler v7.1.0: Big update!\nSpeed improvements, bug fixes, and new features! Why not subscribe to our [YouTube channel](https://www.youtube.com/), ready for the What's New video.\n\nPlease [support the extension](https://github.com/glenn2223/vscode-live-sass-compiler?sponsor) and why not join our community [Discord server](https://discord.gg/dPG4utpAV6)!"
     }
 }
