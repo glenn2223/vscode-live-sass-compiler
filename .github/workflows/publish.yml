@@ -73,7 +73,7 @@ jobs:
                   for ENTRY in "${TARGETS[@]}"; do
                       VSCODE_TARGET="${ENTRY%%:*}"
                       NPM_PKG="${ENTRY##*:}"
-                      VSIX_FILE="${PKG_NAME}-${PKG_VERSION}@${VSCODE_TARGET}.vsix"
+                      VSIX_FILE="${PKG_NAME}-${VSCODE_TARGET}-${PKG_VERSION}.vsix"
 
                       echo "::group::Building $VSCODE_TARGET"
                       npm install --force --no-save "sass-embedded-${NPM_PKG}@${SASS_VERSION}"
