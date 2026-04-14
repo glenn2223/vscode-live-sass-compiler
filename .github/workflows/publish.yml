@@ -24,8 +24,8 @@ jobs:
               with:
                   node-version: 20.x
 
-            - name: Install dependencies (no binaries)
-              run: npm ci --omit=optional
+            - name: Install dependencies
+              run: npm ci
 
             - name: Build extension
               run: npm run vscode:prepublish
@@ -35,6 +35,9 @@ jobs:
 
             - name: Install vsce and ovsx
               run: npm i @vscode/vsce ovsx -g
+
+            - name: Remove sass-embedded platform binaries
+              run: find node_modules -maxdepth 1 -name 'sass-embedded-*' -type d -exec rm -rf {} + 2>/dev/null || true
 
             - name: Package and publish all targets
               env:
