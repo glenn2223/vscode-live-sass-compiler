@@ -77,6 +77,7 @@ jobs:
 
                       echo "::group::Building $VSCODE_TARGET"
                       npm install --force --no-save "sass-embedded-${NPM_PKG}@${SASS_VERSION}"
+                      find node_modules -maxdepth 1 -name 'sass-embedded-*' ! -name "sass-embedded-${NPM_PKG}" -type d -exec rm -rf {} + 2>/dev/null || true
                       vsce package --target "$VSCODE_TARGET" --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/" $PRERELEASE_FLAG
                       vsce publish --packagePath "$VSIX_FILE" $PRERELEASE_FLAG
                       ovsx publish --packagePath "$VSIX_FILE" $PRERELEASE_FLAG
