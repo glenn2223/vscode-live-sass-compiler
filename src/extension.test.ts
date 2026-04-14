@@ -45,6 +45,7 @@ suite("Extension Tests", function () {
 
     test("VS Code save generates files", async function () {
         this.timeout(10000);
+
         const expectedFiles = [
                 vscode.Uri.file("css/sample.scss"),
                 vscode.Uri.file("css/sample.css.map"),
@@ -55,9 +56,9 @@ suite("Extension Tests", function () {
                     file.path,
                 ).path.toLowerCase(),
             ),
-            // Open a file
+            // Open the SCSS file specifically so saving it triggers SASS compilation
             doc = await vscode.window.showTextDocument(
-                (await vscode.workspace.findFiles("css/**"))[0],
+                (await vscode.workspace.findFiles("css/*.scss"))[0],
             );
 
         doc.edit((edit) => {
@@ -69,13 +70,18 @@ suite("Extension Tests", function () {
             assert.ok(false, "Save failed");
         }
 
-        // Wait .6 seconds to allow save success
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
-        // Get the folders files
-        const actualFiles = (await vscode.workspace.findFiles("css/**")).map(
-            (file) => file.path.toLowerCase(),
-        );
+        // Poll until all expected files appear, with a deadline well before the mocha timeout
+        const pollDeadline = Date.now() + 8000;
+        let actualFiles: string[] = [];
+        while (Date.now() < pollDeadline) {
+            actualFiles = (await vscode.workspace.findFiles("css/**")).map(
+                (file) => file.path.toLowerCase(),
+            );
+            if (expectedFiles.every((f) => actualFiles.includes(f))) {
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        }
 
         assert.deepEqual(actualFiles.sort(), expectedFiles.sort());
 
