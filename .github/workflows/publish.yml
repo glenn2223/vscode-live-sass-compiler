@@ -77,7 +77,7 @@ jobs:
 
                       echo "::group::Building $VSCODE_TARGET"
                       npm install --force --no-save "sass-embedded-${NPM_PKG}@${SASS_VERSION}"
-                      vsce package --target "$VSCODE_TARGET" --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/"
+                      vsce package --target "$VSCODE_TARGET" --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/" $PRERELEASE_FLAG
                       vsce publish --packagePath "$VSIX_FILE" $PRERELEASE_FLAG
                       ovsx publish --packagePath "$VSIX_FILE" $PRERELEASE_FLAG
 
@@ -89,7 +89,7 @@ jobs:
                   # Temporarily un-exclude node_modules/sass from .vscodeignore for this package only
                   echo "::group::Building universal"
                   printf '\n!node_modules/sass\n!node_modules/sass/**\n' >> .vscodeignore
-                  vsce package --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/"
+                  vsce package --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/" $PRERELEASE_FLAG
                   git checkout -- .vscodeignore
 
                   UNIVERSAL_VSIX="${PKG_NAME}-${PKG_VERSION}.vsix"
