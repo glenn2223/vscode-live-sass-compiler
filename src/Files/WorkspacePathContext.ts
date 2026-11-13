@@ -8,6 +8,63 @@ import { SassPathResolver } from "./SassPathResolver";
 
 export class WorkspacePathContext {
     /**
+     * The full path the `forceBaseDirectory` setting points to. It isn't
+     * checked: the path might not exist, or might not be a folder.
+     * @returns `null` when the setting isn't in use
+     */
+    static getForcedBasePath(
+        workspaceFolder: vscode.WorkspaceFolder,
+    ): string | null {
+        const forceBaseDirectory = Settings.getConfigSettings<string | null>(
+            "forceBaseDirectory",
+            workspaceFolder,
+        );
+
+        return forceBaseDirectory && forceBaseDirectory.length > 1
+            ? path.resolve(
+                  workspaceFolder.uri.fsPath,
+                  SassPathResolver.stripLeadingSlash(forceBaseDirectory),
+              )
+            : null;
+    }
+
+    /**
+     * The folder that the `includeItems`, `excludeList` and `partialsList`
+     * patterns are relative to, for the given file: the `forceBaseDirectory`
+     * when the file is inside it, otherwise the workspace folder.
+     */
+    static getPatternFolder(
+        filePath: string,
+        workspaceFolder: vscode.WorkspaceFolder,
+    ): vscode.WorkspaceFolder {
+        const basePath =
+            WorkspacePathContext.getForcedBasePath(workspaceFolder);
+
+        if (basePath === null) {
+            return workspaceFolder;
+        }
+
+        const relativePath = path.relative(basePath, filePath);
+
+        // Nothing outside of the base directory is ever compiled. Those files
+        // are still matched, against the workspace folder, so that (for
+        // example) a partial isn't mistaken for a file that can be compiled
+        if (
+            relativePath === "" ||
+            relativePath.startsWith("..") ||
+            path.isAbsolute(relativePath)
+        ) {
+            return workspaceFolder;
+        }
+
+        return {
+            uri: vscode.Uri.file(basePath),
+            name: workspaceFolder.name,
+            index: workspaceFolder.index,
+        };
+    }
+
+    /**
      * Resolves the effective base path for a workspace folder, accounting for forceBaseDirectory setting.
      * @param workspaceFolder The workspace folder to resolve
      * @returns The resolved base path and effective workspace folder, or null if validation fails
@@ -23,19 +80,19 @@ export class WorkspacePathContext {
             workspaceFolder,
         );
 
+        const forcedBasePath =
+            WorkspacePathContext.getForcedBasePath(workspaceFolder);
+
         let basePath = workspaceFolder.uri.fsPath;
         let effectiveFolder = workspaceFolder;
 
-        if (forceBaseDirectory && forceBaseDirectory.length > 1) {
+        if (forcedBasePath !== null) {
             OutputWindow.Show(
                 OutputLevel.Trace,
                 "`forceBaseDirectory` setting found, checking validity",
             );
 
-            basePath = path.resolve(
-                workspaceFolder.uri.fsPath,
-                SassPathResolver.stripLeadingSlash(forceBaseDirectory),
-            );
+            basePath = forcedBasePath;
 
             try {
                 if (

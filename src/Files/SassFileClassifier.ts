@@ -39,15 +39,19 @@ export class SassFileClassifier {
                 return SassConfirmationType.SassFile;
             }
 
-            // Use VS Code's pattern matching for efficient and reliable glob matching
             const relativePatterns =
                 SassPathResolver.stripAnyLeadingSlashes(partialPatterns);
 
+            // Like `includeItems` and `excludeList`, the patterns are
+            // relative to the `forceBaseDirectory` (when there is one)
             if (
                 SassFileClassifier.matchesGlobPattern(
                     relativePatterns,
                     pathUrl,
-                    workspaceFolder,
+                    WorkspacePathContext.getPatternFolder(
+                        pathUrl,
+                        workspaceFolder,
+                    ),
                 )
             ) {
                 return SassConfirmationType.PartialFile;

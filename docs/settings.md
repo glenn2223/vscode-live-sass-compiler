@@ -175,6 +175,22 @@ Using glob patterns, specify what files are actually partials - or what folders 
 [ "/**/_*.s[ac]ss" ]
 ```
 
+<details>
+<summary>Example</summary>
+
+Treat every file in a folder as a partial, as well as those that start with an underscore
+
+```json
+"liveSassCompile.settings.partialsList": [
+    "/**/_*.s[ac]ss",
+    "/path/partials/**"
+]
+```
+
+</details>
+
+_**NOTE:** when `forceBaseDirectory` is set, these patterns are relative to that directory._
+
 ---
 
 ## liveSassCompile.settings.generateMap
@@ -324,7 +340,7 @@ No SASS/SCSS files outside of this folder will be watched/compiled when you save
 > If the path is not found, or is a file, then it will output an error  
 > If the path is wrong then nothing will be found nor compiled
 
-> **⚠ This setting effects the root path for `includeItems` and `excludeList`**. So, a setting of `/Assets` means that `includeItems` and `excludeList` are both relative to `/Assets` and not `/` (the root of the workspace folder)
+> **⚠ This setting effects the root path for `includeItems`, `excludeList` and `partialsList`**. So, a setting of `/Assets` means that `includeItems`, `excludeList` and `partialsList` are all relative to `/Assets` and not `/` (the root of the workspace folder)
 
 ---
 

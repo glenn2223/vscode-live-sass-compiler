@@ -29,7 +29,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-All of these were introduced in `7.1.0`
+- `partialsList` is now relative to `forceBaseDirectory`, in the same way that `includeItems` and `excludeList` are  
+  Before this, "compile all" read the patterns from the base directory while a changed file read them from the workspace folder. So, a folder of partials (e.g. `/partials/**`) was only treated as partials by one of the two  
+  **Note:** if you use `forceBaseDirectory` and have a `partialsList` pattern that starts with the path of the base directory, remove that part of the pattern. Patterns that start with `/**/` (like the default) are not affected
+
+The following were all introduced in `7.1.0`
 
 - A changed partial now respects `forceBaseDirectory`, `excludeList` and `includeItems`  
   Any partial written anywhere in the workspace (build output, `node_modules`, etc.) was causing every file to be compiled

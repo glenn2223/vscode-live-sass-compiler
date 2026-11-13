@@ -1,7 +1,9 @@
 import * as assert from "assert";
+import * as path from "path";
 import * as vscode from "vscode";
 import { SassFileClassifier } from "./SassFileClassifier";
 import { SassConfirmationType } from "../Enums/SassConfirmationType";
+import { WorkspaceSettings } from "../test/workspaceSettings";
 
 suite("SassFileClassifier.confirmSassType", function () {
     test("Returns SassFile for .scss file", () => {
@@ -70,6 +72,65 @@ suite("SassFileClassifier.confirmSassType", function () {
             workspaceFolder,
         );
         assert.equal(result, SassConfirmationType.SassFile);
+    });
+});
+
+suite("SassFileClassifier.confirmSassType — `forceBaseDirectory`", function () {
+    const settings = new WorkspaceSettings();
+
+    function confirm(...segments: string[]): SassConfirmationType {
+        return SassFileClassifier.confirmSassType(
+            path.join(settings.folder.uri.fsPath, ...segments),
+            settings.folder,
+        );
+    }
+
+    setup(() => settings.set("forceBaseDirectory", "/styles"));
+
+    teardown(() => settings.reset());
+
+    test("`partialsList` is relative to the base directory", async () => {
+        await settings.set("partialsList", ["/partials/**"]);
+
+        assert.equal(
+            confirm("styles", "partials", "buttons.scss"),
+            SassConfirmationType.PartialFile,
+        );
+        assert.equal(
+            confirm("styles", "site.scss"),
+            SassConfirmationType.SassFile,
+        );
+    });
+
+    test("A `partialsList` pattern written from the workspace folder doesn't match", async () => {
+        await settings.set("partialsList", ["/styles/partials/**"]);
+
+        assert.equal(
+            confirm("styles", "partials", "buttons.scss"),
+            SassConfirmationType.SassFile,
+        );
+    });
+
+    test("The default `partialsList` still finds partials at any depth", () => {
+        assert.equal(
+            confirm("styles", "_top.scss"),
+            SassConfirmationType.PartialFile,
+        );
+        assert.equal(
+            confirm("styles", "deep", "deeper", "_nested.sass"),
+            SassConfirmationType.PartialFile,
+        );
+    });
+
+    test("A partial outside the base directory is still a partial", () => {
+        assert.equal(
+            confirm("elsewhere", "_outside.scss"),
+            SassConfirmationType.PartialFile,
+        );
+        assert.equal(
+            confirm("elsewhere", "outside.scss"),
+            SassConfirmationType.SassFile,
+        );
     });
 });
 

@@ -178,6 +178,45 @@ suite("Settings — which files are compiled", function () {
             partials: ["styles/_mixins.scss"],
         },
         {
+            // `partialsList` is relative to the base directory
+            name: "`forceBaseDirectory` + `partialsList` with a folder of partials",
+            settings: {
+                forceBaseDirectory: `${base}/styles`,
+                partialsList: ["/**/_*.s[ac]ss", "/partials/**"],
+            },
+            compiled: ["styles/admin/admin.sass", "styles/site.scss"],
+            partials: [
+                "styles/_mixins.scss",
+                "styles/admin/_vars.sass",
+                "styles/partials/buttons.scss",
+            ],
+        },
+        {
+            // ... so a pattern written from the workspace folder matches nothing
+            name: "`forceBaseDirectory` + `partialsList` written from the workspace folder",
+            settings: {
+                forceBaseDirectory: `${base}/styles`,
+                partialsList: ["/**/_*.s[ac]ss", `${base}/styles/partials/**`],
+            },
+            compiled: [
+                "styles/admin/admin.sass",
+                "styles/partials/buttons.scss",
+                "styles/site.scss",
+            ],
+            partials: ["styles/_mixins.scss", "styles/admin/_vars.sass"],
+        },
+        {
+            name: "`forceBaseDirectory` + `includeItems` + `excludeList` + `partialsList`",
+            settings: {
+                forceBaseDirectory: `${base}/styles`,
+                includeItems: ["/site.scss"],
+                excludeList: ["/admin/**"],
+                partialsList: ["/**/_*.s[ac]ss", "/partials/**"],
+            },
+            compiled: ["styles/site.scss"],
+            partials: ["styles/_mixins.scss", "styles/partials/buttons.scss"],
+        },
+        {
             name: "An `excludeList` that excludes everything",
             settings: { excludeList: [`${base}/**`] },
             compiled: [],
