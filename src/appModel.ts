@@ -17,12 +17,27 @@ import { SassFileClassifier } from "./Files/SassFileClassifier";
 import { SassFileCollector } from "./Files/SassFileCollector";
 import { WorkspacePathContext } from "./Files/WorkspacePathContext";
 
+import { CompileAllScheduler } from "./Compilation/CompileAllScheduler";
 import { SassBatchCompiler } from "./Compilation/SassBatchCompiler";
 
 export class AppModel {
     isWatching: boolean;
     private _logger: ErrorLogger;
     private _watcher: WorkspaceWatcher;
+
+    /** Merges the compiles that changed partials ask for */
+    private _partialChanges = new CompileAllScheduler((folders, triggers) =>
+        this.compileForPartialChanges(folders, triggers),
+    );
+
+    /**
+     * Changed files that haven't been compiled singly, because a compile
+     * that's waiting in `_partialChanges` will compile them anyway
+     */
+    private _deferredFiles = new Map<
+        string,
+        vscode.WorkspaceFolder | undefined
+    >();
 
     constructor(workplaceState: vscode.Memento) {
         OutputWindow.Show(OutputLevel.Trace, "Constructing app model");
@@ -67,6 +82,7 @@ export class AppModel {
             this.isWatching = !this.isWatching;
 
             this._watcher.dispose();
+            this.cancelPendingChanges();
         }
 
         CompilationUi.revertUIToWatchingStatusNow(this.isWatching);
@@ -282,34 +298,86 @@ export class AppModel {
             }
 
             StatusBarUi.working();
-            OutputWindow.Show(
-                OutputLevel.Information,
-                "Partial file change detected - " + new Date().toLocaleString(),
-                [path.basename(uri.fsPath)],
-            );
 
-            if (Settings.getWorkspacesAreLinked()) {
+            // Compiling is left to the scheduler, so that several partials
+            // changing together only compile everything once
+            if (Settings.getWorkspacesAreLinked() || !workspaceFolder) {
                 OutputWindow.Show(
                     OutputLevel.Trace,
-                    "Workspaces are linked - compiling all workspace folders",
+                    "Partial file change queued - all workspace folders will be compiled",
+                    [`Path: ${uri.fsPath}`],
                 );
-                await SassBatchCompiler.compileAll(this.isWatching);
+                this._partialChanges.request(uri.fsPath);
             } else {
                 OutputWindow.Show(
                     OutputLevel.Trace,
-                    "Workspaces are not linked - compiling only the owning workspace folder",
-                    [workspaceFolder?.name ?? "no folder"],
+                    "Partial file change queued - only the owning workspace folder will be compiled",
+                    [`Path: ${uri.fsPath}`, `Folder: ${workspaceFolder.name}`],
                 );
-                await SassBatchCompiler.compileAll(
-                    this.isWatching,
-                    workspaceFolder,
-                );
+                this._partialChanges.request(uri.fsPath, workspaceFolder);
             }
         } catch (err) {
             OutputWindow.Show(
                 OutputLevel.Error,
                 "Error handling partial file change",
                 [`File: ${uri.fsPath}`, `Error: ${err}`],
+            );
+
+            CompilationUi.revertUIToWatchingStatus(() => this.isWatching);
+        }
+    }
+
+    /**
+     * Compiles everything that one or more changed partials could affect.
+     * @param folders The workspace folders to compile, or `undefined` for all of them
+     * @param partialPaths The partials that changed
+     */
+    private async compileForPartialChanges(
+        folders: vscode.WorkspaceFolder[] | undefined,
+        partialPaths: string[],
+    ): Promise<void> {
+        if (!this.isWatching) {
+            return;
+        }
+
+        const deferredFiles = new Map(this._deferredFiles);
+
+        this._deferredFiles.clear();
+
+        try {
+            StatusBarUi.working();
+            OutputWindow.Show(
+                OutputLevel.Information,
+                "Partial file change detected - " + new Date().toLocaleString(),
+                partialPaths.map((partialPath) => path.basename(partialPath)),
+            );
+
+            const compiledPaths = new Set<string>();
+
+            for (const folder of folders ?? [undefined]) {
+                (
+                    await SassBatchCompiler.compileAll(this.isWatching, folder)
+                ).forEach((sassPath) => compiledPaths.add(sassPath));
+            }
+
+            // Normally there's nothing left, as compiling everything
+            // includes the files that were left for it
+            for (const [sassPath, folder] of deferredFiles) {
+                if (!compiledPaths.has(sassPath)) {
+                    await SassBatchCompiler.handleSingleFile(
+                        folder,
+                        sassPath,
+                        this.isWatching,
+                    );
+                }
+            }
+        } catch (err) {
+            OutputWindow.Show(
+                OutputLevel.Error,
+                "Error handling partial file change",
+                partialPaths
+                    .map((partialPath) => `File: ${partialPath}`)
+                    .concat(`Error: ${err}`),
             );
         }
 
@@ -333,6 +401,19 @@ export class AppModel {
                     "The file has not been compiled as it's excluded by user settings",
                     `Path: ${currentFile}`,
                 ]);
+                return;
+            }
+
+            if (
+                workspaceFolder &&
+                this._partialChanges.covers(workspaceFolder)
+            ) {
+                OutputWindow.Show(
+                    OutputLevel.Trace,
+                    "File change left for the queued compile of all files",
+                    [`Path: ${currentFile}`],
+                );
+                this._deferredFiles.set(currentFile, workspaceFolder);
                 return;
             }
 
@@ -382,10 +463,16 @@ export class AppModel {
         }
     }
 
+    private cancelPendingChanges(): void {
+        this._partialChanges.cancel();
+        this._deferredFiles.clear();
+    }
+
     dispose(): void {
         OutputWindow.Show(OutputLevel.Trace, "Disposing app model");
 
         this._watcher.dispose();
+        this.cancelPendingChanges();
 
         StatusBarUi.dispose();
         OutputWindow.dispose();

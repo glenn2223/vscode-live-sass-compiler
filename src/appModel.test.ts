@@ -73,7 +73,7 @@ suite("AppModel — watching for changes", function () {
         await setBaseDirectory(`/${fixtureName}/src`);
 
         // Let the events from the files above pass before watching
-        await sleep(1000);
+        await sleep(2000);
 
         await vscode.commands.executeCommand("liveSass.command.watchMySass");
     });
@@ -117,6 +117,28 @@ suite("AppModel — watching for changes", function () {
         assert.ok(
             await waitForFile(compiledCss),
             "Changing the partial should compile the file that uses it",
+        );
+    });
+
+    test("Partials and files changing together are all compiled", async () => {
+        const secondCss = path.join(fixturePath, "src", "second.css");
+
+        fs.rmSync(compiledCss, { force: true });
+
+        // A file that changes alongside a partial is left for the compile
+        // of all files, instead of being compiled twice
+        writeFixtureFile("src/_part.scss", "d { e: h }");
+        writeFixtureFile("src/_another.scss", "y { z: a }");
+        writeFixtureFile("src/second.scss", "b { c: d }");
+        writeFixtureFile("src/_part.scss", "d { e: i }");
+
+        assert.ok(
+            await waitForFile(compiledCss),
+            "The file that uses the partial should be compiled",
+        );
+        assert.ok(
+            await waitForFile(secondCss),
+            "The file that changed with the partials should be compiled",
         );
     });
 

@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { SassFileCollector } from "./SassFileCollector";
+import { WorkspaceSettings, writeFiles } from "../test/workspaceSettings";
 
 suite("SassFileCollector.getSassFiles", function () {
     test("Returns an array", async () => {
@@ -61,27 +62,12 @@ suite("SassFileCollector.getSassFiles — user settings", function () {
     this.timeout(10000);
 
     const fixtureName = "collector_fixture",
-        changedSettings = new Set<string>();
+        settings = new WorkspaceSettings();
 
-    let folder: vscode.WorkspaceFolder, fixturePath: string;
+    let fixturePath: string;
 
-    function config(section = "liveSassCompile.settings") {
-        return vscode.workspace.getConfiguration(section, folder);
-    }
-
-    async function setSetting(
-        key: string,
-        value: unknown,
-        section?: string,
-    ): Promise<void> {
-        changedSettings.add(`${section ?? ""}|${key}`);
-
-        await config(section).update(
-            key,
-            value,
-            vscode.ConfigurationTarget.WorkspaceFolder,
-        );
-    }
+    const setSetting = (key: string, value: unknown, section?: string) =>
+        settings.set(key, value, section);
 
     /** The found files that are in the fixture, relative to the fixture */
     async function getFixtureFiles(): Promise<string[]> {
@@ -92,15 +78,14 @@ suite("SassFileCollector.getSassFiles — user settings", function () {
     }
 
     suiteSetup(async () => {
-        folder = vscode.workspace.workspaceFolders![0];
-        fixturePath = path.join(folder.uri.fsPath, fixtureName);
+        fixturePath = path.join(settings.folder.uri.fsPath, fixtureName);
 
         // Stop the extension compiling the fixture as it's created
         await vscode.commands.executeCommand(
             "liveSass.command.donotWatchMySass",
         );
 
-        const files: Record<string, string> = {
+        writeFiles(fixturePath, {
             "src/app.scss": "a { b: c }",
             "src/_part.scss": "d { e: f }",
             "src/Upper.SCSS": "g { h: i }",
@@ -109,29 +94,10 @@ suite("SassFileCollector.getSassFiles — user settings", function () {
             "src/notes.txt": "Not a Sass file",
             "build/main.scss": "p { q: r }",
             "build/_part.scss": "s { t: u }",
-        };
-
-        for (const file in files) {
-            const fullPath = path.join(fixturePath, file);
-
-            fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-            fs.writeFileSync(fullPath, files[file]);
-        }
+        });
     });
 
-    teardown(async () => {
-        for (const setting of changedSettings) {
-            const [section, key] = setting.split("|");
-
-            await config(section || undefined).update(
-                key,
-                undefined,
-                vscode.ConfigurationTarget.WorkspaceFolder,
-            );
-        }
-
-        changedSettings.clear();
-    });
+    teardown(() => settings.reset());
 
     suiteTeardown(async () => {
         fs.rmSync(fixturePath, { recursive: true, force: true });

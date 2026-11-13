@@ -23,6 +23,37 @@ Types of changes
 
 All notable changes to this project will be documented in this file.
 
+## [7.1.1 (pre-release)][7.1.1] - 2026-11-13
+
+<small>[Compare to previous release][comp:7.1.1]</small>
+
+### Fixed
+
+All of these were introduced in `7.1.0`
+
+- A changed partial now respects `forceBaseDirectory`, `excludeList` and `includeItems`  
+  Any partial written anywhere in the workspace (build output, `node_modules`, etc.) was causing every file to be compiled
+- Saving a file in the editor always compiles it again. The file watcher alone would miss:
+    - Files that aren't in a workspace folder (including when no folder is open)
+    - On Linux, files in a folder that was created at the same time as its parent (e.g. after a git checkout)
+- "Compile all" matches `includeItems`, `excludeList` and `partialsList` in the same way as a changed file does (using `picomatch`) which means:
+    - Extglobs, negation and the other documented patterns work again
+    - Matching is case-insensitive again
+    - Two or more `includeItems` can contain braces (e.g. `*.{scss,sass}`); nothing was being found
+    - A broad `includeItems` pattern no longer picks up non-Sass files
+- Sass files with an upper-case extension (e.g. `.SCSS`) are watched and found again
+- The VS Code `files.exclude` setting no longer hides files from "compile all"
+
+### Changed
+
+- When several partials change together (a git checkout, a build, "Save All") everything is compiled once, rather than once per partial  
+  Files that changed alongside them are left for that compile, instead of also being compiled on their own
+
+### Other
+
+- Added tests for what each of the file and output settings is designed to do - alone and in combination
+- Added tests for the watch behaviour: what does (and doesn't) trigger a compile
+
 ## [7.1.0 (pre-release)][7.1.0] - 2026-04-14
 
 <small>[Compare to previous release][comp:7.1.0]</small>
@@ -871,6 +902,8 @@ All notable changes to this project will be documented in this file.
 | 0.0.2   | 11.07.17   | Small description updated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | 0.0.1   | 11.07.17   | Initial Preview Release with following key features. <br> – Live SASS & SCSS Compile. <br> – Customizable file location of exported CSS. <br> – Customizable exported CSS Style (`expanded`, `compact`, `compressed`, `nested`.)<br> – Quick Status bar control.<br> – Live Reload to browser (`Live Server` extension dependency).                                                                                                                                                                                                                                                                                                                                                                          |
 
+[7.1.1]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v7.1.1
+[comp:7.1.1]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v7.1.0...v7.1.1
 [7.1.0]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v7.1.0
 [comp:7.1.0]: https://github.com/glenn2223/vscode-live-sass-compiler/compare/v6.1.5...v7.1.0
 [6.1.5]: https://github.com/glenn2223/vscode-live-sass-compiler/releases/tag/v6.1.5

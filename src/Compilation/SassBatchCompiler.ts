@@ -10,11 +10,12 @@ import { CompilationUi } from "../VsCode/CompilationUi";
 export class SassBatchCompiler {
     /**
      * Compiles all qualifying SASS files and updates UI accordingly.
+     * @returns The paths of the files that were compiled
      */
     static async compileAll(
         isWatching: boolean,
         workspaceFolder?: vscode.WorkspaceFolder,
-    ): Promise<void> {
+    ): Promise<string[]> {
         const sassPaths = await SassFileCollector.getSassFiles(
             undefined,
             false,
@@ -43,6 +44,8 @@ export class SassBatchCompiler {
         );
 
         CompilationUi.handleBatchResults(results, isWatching);
+
+        return sassPaths;
     }
 
     /**
