@@ -3,10 +3,20 @@ import * as vscode from "vscode";
 import { Settings } from "../VsCode/Settings";
 import { OutputWindow } from "../VsCode/OutputWindow";
 import { OutputLevel } from "../Enums/OutputLevel";
+import { SassFileClassifier } from "./SassFileClassifier";
 import { SassPathResolver } from "./SassPathResolver";
 import { WorkspacePathContext } from "./WorkspacePathContext";
 
 export class SassFileCollector {
+    /**
+     * Glob (in VS Code's syntax) that finds every Sass/SCSS file, whatever
+     * the casing of its extension.
+     */
+    static readonly sassFileGlob = "**/*.[sS][aAcC][sS][sS]";
+
+    /** Include pattern (in picomatch syntax) used when nothing narrows the search */
+    private static readonly defaultIncludePatterns = ["**/*.s[ac]ss"];
+
     static async getSassFiles(
         queryPattern?: string[],
         isDebugging = false,
@@ -79,7 +89,7 @@ export class SassFileCollector {
                         return null; // Error already logged by helper
                     }
 
-                    const { basePath } = resolved;
+                    const { basePath, effectiveFolder } = resolved;
 
                     // Add partials to excludedItems (unless debugging)
                     if (!isDebugging) {
@@ -93,30 +103,45 @@ export class SassFileCollector {
                         );
                     }
 
+                    const includePatterns =
+                        effectivePattern && effectivePattern.length > 0
+                            ? effectivePattern
+                            : SassFileCollector.defaultIncludePatterns;
+
                     try {
-                        const includePattern = new vscode.RelativePattern(
-                            basePath,
-                            SassFileCollector.buildIncludeGlob(
-                                effectivePattern,
-                            ),
-                        );
-
-                        const excludePattern =
-                            excludedItems.length > 0
-                                ? `{${excludedItems.join(",")}}`
-                                : null;
-
+                        // VS Code only does the crawl; the include/exclude
+                        // settings are applied below with the same picomatch
+                        // matching used when a single file changes. Handing
+                        // the user's patterns to `findFiles` doesn't work
+                        // because it has a different glob syntax (no extglobs
+                        // or negation, case-sensitive, a list of patterns
+                        // can't contain braces) and it would return non-Sass
+                        // files too.
+                        // The `null` exclude stops the `files.exclude` setting
+                        // from hiding files from the compiler.
                         const foundFiles = await vscode.workspace.findFiles(
-                            includePattern,
-                            excludePattern
-                                ? new vscode.RelativePattern(
-                                      basePath,
-                                      excludePattern,
-                                  )
-                                : null,
+                            new vscode.RelativePattern(
+                                basePath,
+                                SassFileCollector.sassFileGlob,
+                            ),
+                            null,
                         );
 
-                        return foundFiles.map((file) => file.fsPath);
+                        return foundFiles
+                            .map((file) => file.fsPath)
+                            .filter(
+                                (file) =>
+                                    SassFileClassifier.matchesGlobPattern(
+                                        includePatterns,
+                                        file,
+                                        effectiveFolder,
+                                    ) &&
+                                    !SassFileClassifier.matchesGlobPattern(
+                                        excludedItems,
+                                        file,
+                                        effectiveFolder,
+                                    ),
+                            );
                     } catch (error) {
                         OutputWindow.Show(
                             OutputLevel.Warning,
@@ -152,16 +177,5 @@ export class SassFileCollector {
         );
 
         return fileList;
-    }
-
-    /**
-     * Build a VS Code glob string from an array of include patterns.
-     * A single pattern is passed through as-is; multiple patterns are
-     * wrapped in `{a,b}` brace syntax required by the VS Code glob engine.
-     */
-    static buildIncludeGlob(patterns?: string[]): string {
-        const items =
-            patterns && patterns.length > 0 ? patterns : ["**/*.s[ac]ss"];
-        return items.length === 1 ? items[0] : `{${items.join(",")}}`;
     }
 }

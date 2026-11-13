@@ -264,6 +264,23 @@ export class AppModel {
         workspaceFolder?: vscode.WorkspaceFolder,
     ): Promise<void> {
         try {
+            // A partial only triggers a recompile when it's one of ours.
+            // Without this, partials outside of `forceBaseDirectory` or
+            // inside an excluded folder (build output, `node_modules`, ...)
+            // would each cause every file to be compiled.
+            if (
+                await SassFileClassifier.isSassFileExcluded(
+                    uri.fsPath,
+                    workspaceFolder,
+                )
+            ) {
+                OutputWindow.Show(OutputLevel.Trace, "Partial file excluded", [
+                    "Nothing has been compiled as the partial is excluded by user settings",
+                    `Path: ${uri.fsPath}`,
+                ]);
+                return;
+            }
+
             StatusBarUi.working();
             OutputWindow.Show(
                 OutputLevel.Information,
