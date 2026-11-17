@@ -6,10 +6,22 @@ import { workspace } from "vscode";
 import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import { Logger, Options, SourceSpan, compileAsync } from "sass-embedded";
+import { Logger, Options, SourceSpan } from "sass-embedded";
 import { ISassCompileResult } from "../Interfaces/ISassCompileResult";
+import { SharedSassCompiler } from "./SharedSassCompiler";
 
 export class SassCompiler {
+    /** The one Sass compiler process that every compile goes through */
+    private static readonly sharedCompiler = new SharedSassCompiler();
+
+    /**
+     * Stops the Sass compiler process (when it's running).
+     * It's started again by the next compile.
+     */
+    static dispose(): Promise<void> {
+        return SassCompiler.sharedCompiler.dispose();
+    }
+
     private static readonly loggerProperty: Logger = {
         warn: (
             message: string,
@@ -85,7 +97,8 @@ export class SassCompiler {
         options: Options<"async">,
     ): Promise<ISassCompileResult> {
         try {
-            const { css, sourceMap } = await compileAsync(SassPath, options);
+            const { css, sourceMap } =
+                await SassCompiler.sharedCompiler.compile(SassPath, options);
 
             if (sourceMap) {
                 sourceMap.sources = sourceMap.sources.map((sourcePath) =>

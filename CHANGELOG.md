@@ -35,6 +35,8 @@ All notable changes to this project will be documented in this file.
 
 The following were all introduced in `7.1.0`
 
+- One Sass compiler process is now shared by every compile. A process was being started for each file (and each of its `formats`), all at the same time. Compiling 60 files in two formats started 120 processes; it now uses one and takes less than half the time  
+  The process is stopped after 5 minutes without use, and started again when it's next needed
 - A changed partial now respects `forceBaseDirectory`, `excludeList` and `includeItems`  
   Any partial written anywhere in the workspace (build output, `node_modules`, etc.) was causing every file to be compiled
 - Saving a file in the editor always compiles it again. The file watcher alone would miss:

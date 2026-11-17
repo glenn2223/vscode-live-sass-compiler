@@ -8,6 +8,7 @@ import { registerCommands } from "./VsCode/CommandRegistry";
 import { OutputWindow } from "./VsCode/OutputWindow";
 import { ErrorLogger } from "./VsCode/ErrorLogger";
 import { OutputLevel } from "./Enums/OutputLevel";
+import { SassCompiler } from "./Compilation/SassCompiler";
 
 export async function activate(
     context: vscode.ExtensionContext,
@@ -48,8 +49,8 @@ export async function activate(
     }
 }
 
-export function deactivate(): void {
-    // No actual actions are required
-
+export async function deactivate(): Promise<void> {
     OutputWindow.Show(OutputLevel.Trace, '"live-sass-compiler" deactivated');
+
+    await SassCompiler.dispose();
 }
