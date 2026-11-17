@@ -10,7 +10,8 @@ import {
     Exception,
     initAsyncCompiler,
 } from "sass-embedded";
-import { SharedSassCompiler } from "./SharedSassCompiler";
+import { pathToFileURL } from "url";
+import { SharedSassCompiler, getCompilerProcess } from "./SharedSassCompiler";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -223,7 +224,18 @@ suite("SharedSassCompiler — with the real compiler", function () {
     let folder: string, started: AsyncCompiler[], shared: SharedSassCompiler;
 
     function childProcess(compiler: AsyncCompiler): ChildProcess {
-        return (compiler as unknown as { process: ChildProcess }).process;
+        const child = getCompilerProcess(compiler);
+
+        assert.ok(child, "Can't get at the process of the compiler");
+
+        return child;
+    }
+
+    /** Fails, instead of waiting for the test to time out */
+    function failAfter<T>(ms: number, message: string): Promise<T> {
+        return new Promise((_resolve, reject) =>
+            setTimeout(() => reject(new Error(message)), ms),
+        );
     }
 
     function isRunning(compiler: AsyncCompiler): boolean {
@@ -309,6 +321,86 @@ suite("SharedSassCompiler — with the real compiler", function () {
         const result = await shared.compile(file, { style: "compressed" });
 
         assert.equal(result.css, "a{b:c}");
+        assert.equal(started.length, 2, "Should have started a new process");
+    });
+
+    /*
+     * The next two tests guard against a change inside `sass-embedded`.
+     *
+     * Knowing that the process has stopped relies on a property that isn't
+     * part of their public API. If an update renames or removes it then
+     * nothing would error: compiles would just start waiting forever again
+     * whenever the process is ended part way through one.
+     */
+
+    test("The process of the compiler from `sass-embedded` can be got at", async () => {
+        const compiler = await initAsyncCompiler();
+
+        try {
+            const child = getCompilerProcess(compiler);
+
+            assert.ok(
+                child,
+                "`sass-embedded` has changed: its compiler no longer has a " +
+                    "`process`. `getCompilerProcess` (SharedSassCompiler.ts) " +
+                    "needs updating to find it again",
+            );
+            assert.equal(
+                typeof child.pid,
+                "number",
+                "`process` should be the running compiler process",
+            );
+            assert.equal(typeof child.kill, "function");
+        } finally {
+            await compiler.dispose();
+        }
+    });
+
+    test("A compile isn't left waiting when the process is ended part way through", async () => {
+        const dependency = write("_ended-dep.scss", ".dep { e: f }"),
+            file = write("ended.scss", '@use "ended:dep";\n\na { b: c }');
+
+        // Make sure a process is running before the compile below
+        await shared.compile(write("warm-up.scss", "a { b: c }"), {});
+
+        const firstProcess = childProcess(started[0]);
+
+        let wasEnded = false;
+
+        const compiling = shared.compile(file, {
+            style: "compressed",
+            importers: [
+                {
+                    // The compiler asks for this file in the middle of the
+                    // compile, which is when its process gets ended
+                    findFileUrl: (url) => {
+                        if (!url.startsWith("ended:")) {
+                            return null;
+                        }
+
+                        if (!wasEnded) {
+                            wasEnded = true;
+                            firstProcess.kill();
+                        }
+
+                        return pathToFileURL(dependency);
+                    },
+                },
+            ],
+        });
+
+        const result = await Promise.race([
+            compiling,
+            failAfter<never>(
+                10000,
+                "The compile was left waiting after its process was ended. " +
+                    "Has `sass-embedded` changed? See `getCompilerProcess` " +
+                    "(SharedSassCompiler.ts)",
+            ),
+        ]);
+
+        assert.ok(wasEnded, "The process should've been ended mid-compile");
+        assert.equal(result.css, ".dep{e:f}a{b:c}");
         assert.equal(started.length, 2, "Should have started a new process");
     });
 

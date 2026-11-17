@@ -15,6 +15,23 @@ interface IRunningCompiler {
 }
 
 /**
+ * The process behind a compiler from `sass-embedded`.
+ *
+ * This isn't part of their public API, so it could change in any release.
+ * Without it there's no way to tell that the process has stopped, and a
+ * compile that was in progress at the time would wait forever.
+ * `SharedSassCompiler.test.ts` fails if this stops working.
+ */
+export function getCompilerProcess(
+    compiler: AsyncCompiler,
+): ChildProcess | undefined {
+    const childProcess = (compiler as unknown as { process?: ChildProcess })
+        .process;
+
+    return typeof childProcess?.once === "function" ? childProcess : undefined;
+}
+
+/**
  * Compiles every file with one long-lived Sass compiler process.
  *
  * `compileAsync` from `sass-embedded` starts a process for each call and
@@ -104,18 +121,12 @@ export class SharedSassCompiler {
 
     private async start(): Promise<IRunningCompiler> {
         const compiler = await this._start(),
-            // Not part of the public API, hence being careful with it
-            childProcess = (compiler as unknown as { process?: ChildProcess })
-                .process,
+            childProcess = getCompilerProcess(compiler),
             stopped = new Promise<never>((_resolve, reject) => {
-                if (typeof childProcess?.once !== "function") {
-                    return;
-                }
-
-                childProcess.once("exit", () =>
+                childProcess?.once("exit", () =>
                     reject(new Error("The Sass compiler process has stopped")),
                 );
-                childProcess.once("error", (err) => reject(err));
+                childProcess?.once("error", (err) => reject(err));
             });
 
         // It's only of interest to a compile that's waiting on it
