@@ -45,3 +45,23 @@ jobs:
             - name: Ensure prePublish script is working
               if: runner.os == 'Linux'
               run: xvfb-run -a npm run vscode:prepublish
+
+            # The universal VSIX has no native Sass compiler: the extension
+            # uses `sass` (pure JS), which must be packaged with all it needs
+            - name: Ensure the universal VSIX can compile
+              if: runner.os == 'Linux'
+              shell: bash
+              run: |
+                  find node_modules -maxdepth 1 -name 'sass-embedded-*' -type d -exec rm -rf {} +
+                  node .github/scripts/sass-fallback-vscodeignore.js >> .vscodeignore
+                  npx --yes @vscode/vsce package --out "$RUNNER_TEMP/universal.vsix"
+                  git checkout -- .vscodeignore
+
+                  UNPACKED_VSIX="$(mktemp -d)"
+                  unzip -q "$RUNNER_TEMP/universal.vsix" -d "$UNPACKED_VSIX"
+                  node .github/scripts/check-universal-vsix.js "$UNPACKED_VSIX"
+
+            # The native compilers were removed by the step above
+            - name: Test extension with the pure JS compiler
+              if: runner.os == 'Linux'
+              run: xvfb-run -a npm test

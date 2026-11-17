@@ -123,8 +123,13 @@ export class SharedSassCompiler {
         const compiler = await this._start(),
             childProcess = getCompilerProcess(compiler),
             stopped = new Promise<never>((_resolve, reject) => {
-                childProcess?.once("exit", () =>
-                    reject(new Error("The Sass compiler process has stopped")),
+                childProcess?.once("exit", (code, signal) =>
+                    reject(
+                        new Error(
+                            "The Sass compiler process stopped unexpectedly " +
+                                `(${signal ?? `exit code ${code}`})`,
+                        ),
+                    ),
                 );
                 childProcess?.once("error", (err) => reject(err));
             });

@@ -37,6 +37,8 @@ The following were all introduced in `7.1.0`
 
 - One Sass compiler process is now shared by every compile. A process was being started for each file (and each of its `formats`), all at the same time. Compiling 60 files in two formats started 120 processes; it now uses one and takes less than half the time  
   The process is stopped after 5 minutes without use, and started again when it's next needed
+- The universal VSIX (the one used when there's no native Sass compiler for your platform) can compile again  
+  It relied on `sass-embedded` falling back to the pure JS `sass` package, which it can't do. Nothing was compiled and the status bar stayed on "Working on it...". The extension now uses the pure JS `sass` package itself on those platforms, and the VSIX includes everything that package needs
 - A changed partial now respects `forceBaseDirectory`, `excludeList` and `includeItems`  
   Any partial written anywhere in the workspace (build output, `node_modules`, etc.) was causing every file to be compiled
 - Saving a file in the editor always compiles it again. The file watcher alone would miss:
@@ -59,6 +61,7 @@ The following were all introduced in `7.1.0`
 
 - Added tests for what each of the file and output settings is designed to do - alone and in combination
 - Added tests for the watch behaviour: what does (and doesn't) trigger a compile
+- The tests also run with the pure JS compiler, and the universal VSIX is built and checked, before every merge and publish
 
 ## [7.1.0 (pre-release)][7.1.0] - 2026-04-14
 

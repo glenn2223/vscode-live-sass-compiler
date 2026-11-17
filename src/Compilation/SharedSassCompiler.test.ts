@@ -12,6 +12,7 @@ import {
 } from "sass-embedded";
 import { pathToFileURL } from "url";
 import { SharedSassCompiler, getCompilerProcess } from "./SharedSassCompiler";
+import { hasNativeCompiler } from "./SassEngine";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -252,7 +253,12 @@ suite("SharedSassCompiler — with the real compiler", function () {
         return fullPath;
     }
 
-    suiteSetup(() => {
+    suiteSetup(function () {
+        // There's no process to test when the pure JS compiler is in use
+        if (!hasNativeCompiler()) {
+            this.skip();
+        }
+
         folder = fs.mkdtempSync(path.join(os.tmpdir(), "live-sass-shared-"));
     });
 
@@ -269,7 +275,11 @@ suite("SharedSassCompiler — with the real compiler", function () {
 
     teardown(() => shared.dispose());
 
-    suiteTeardown(() => fs.rmSync(folder, { recursive: true, force: true }));
+    suiteTeardown(() => {
+        if (folder) {
+            fs.rmSync(folder, { recursive: true, force: true });
+        }
+    });
 
     test("Fifty files are compiled by a single process", async () => {
         const files = Array.from({ length: 50 }, (_value, index) =>

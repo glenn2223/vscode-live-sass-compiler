@@ -86,14 +86,20 @@ jobs:
                       echo "::endgroup::"
                   done
 
-                  # Universal VSIX: no platform binary, falls back to sass.js (pure JS)
-                  # Temporarily un-exclude node_modules/sass from .vscodeignore for this package only
+                  # Universal VSIX: no platform binary, so the extension uses `sass` (pure JS)
+                  # Temporarily un-exclude `sass`, and the packages it needs, from .vscodeignore for this package only
                   echo "::group::Building universal"
-                  printf '\n!node_modules/sass\n!node_modules/sass/**\n' >> .vscodeignore
+                  node .github/scripts/sass-fallback-vscodeignore.js >> .vscodeignore
                   vsce package --baseContentUrl "https://github.com/glenn2223/vscode-live-sass-compiler/raw/v${PKG_VERSION}/" $PRERELEASE_FLAG
                   git checkout -- .vscodeignore
 
                   UNIVERSAL_VSIX="${PKG_NAME}-${PKG_VERSION}.vsix"
+
+                  # Don't publish it unless it can compile with only what's inside it
+                  UNPACKED_VSIX="$(mktemp -d)"
+                  unzip -q "$UNIVERSAL_VSIX" -d "$UNPACKED_VSIX"
+                  node .github/scripts/check-universal-vsix.js "$UNPACKED_VSIX"
+
                   vsce publish --packagePath "$UNIVERSAL_VSIX" $PRERELEASE_FLAG
                   ovsx publish --packagePath "$UNIVERSAL_VSIX" $PRERELEASE_FLAG
                   echo "::endgroup::"

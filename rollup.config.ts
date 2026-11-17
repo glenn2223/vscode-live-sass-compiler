@@ -11,7 +11,9 @@ console.log(`Building for ${isTest ? "testing" : "production"}...`);
 
 export default {
     input: "src/extension.ts",
-    external: "vscode",
+    // `sass` (pure JS) is only loaded when there's no native compiler, and
+    // only the universal VSIX contains it. Bundling it would add 5MB to all
+    external: ["vscode", "sass"],
     output: [
         {
             file: "out/extension.js",

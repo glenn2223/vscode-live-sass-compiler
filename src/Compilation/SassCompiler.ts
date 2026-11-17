@@ -8,18 +8,40 @@ import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { Logger, Options, SourceSpan } from "sass-embedded";
 import { ISassCompileResult } from "../Interfaces/ISassCompileResult";
-import { SharedSassCompiler } from "./SharedSassCompiler";
+import { ISassEngine, createSassEngine } from "./SassEngine";
 
 export class SassCompiler {
-    /** The one Sass compiler process that every compile goes through */
-    private static readonly sharedCompiler = new SharedSassCompiler();
+    private static _engine: ISassEngine | undefined;
 
     /**
-     * Stops the Sass compiler process (when it's running).
+     * What compiles the Sass. Normally that's one native compiler process,
+     * shared by every compile.
+     */
+    private static get engine(): ISassEngine {
+        if (!SassCompiler._engine) {
+            SassCompiler._engine = createSassEngine();
+
+            OutputWindow.Show(
+                OutputLevel.Debug,
+                `Using the ${SassCompiler._engine.name} Sass compiler`,
+                SassCompiler._engine.name === "native"
+                    ? null
+                    : [
+                          "There isn't a native Sass compiler for this platform in the extension",
+                          "The pure JS compiler does the same job, but it is slower",
+                      ],
+            );
+        }
+
+        return SassCompiler._engine;
+    }
+
+    /**
+     * Stops the Sass compiler process (when there's one running).
      * It's started again by the next compile.
      */
-    static dispose(): Promise<void> {
-        return SassCompiler.sharedCompiler.dispose();
+    static async dispose(): Promise<void> {
+        await SassCompiler._engine?.dispose();
     }
 
     private static readonly loggerProperty: Logger = {
@@ -97,8 +119,10 @@ export class SassCompiler {
         options: Options<"async">,
     ): Promise<ISassCompileResult> {
         try {
-            const { css, sourceMap } =
-                await SassCompiler.sharedCompiler.compile(SassPath, options);
+            const { css, sourceMap } = await SassCompiler.engine.compile(
+                SassPath,
+                options,
+            );
 
             if (sourceMap) {
                 sourceMap.sources = sourceMap.sources.map((sourcePath) =>
